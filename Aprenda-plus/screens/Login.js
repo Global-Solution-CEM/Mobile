@@ -1,9 +1,36 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Atenção', 'Preencha todos os campos');
+      return;
+    }
+
+    setLoading(true);
+    const result = await login(email, password);
+    setLoading(false);
+
+    if (result.success) {
+      // Navegação será feita automaticamente pelo App.js quando isAuthenticated mudar
+      Alert.alert('Sucesso', result.message);
+    } else {
+      Alert.alert('Erro', result.message);
+    }
+  };
+
   return (
     <BackgroundImage style={styles.container}>
       <StatusBar style="light" />
@@ -23,17 +50,44 @@ export default function Login({ navigation }) {
                 placeholderTextColor="#B0B0B0"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                editable={!loading}
               />
               
-              <TextInput
-                style={styles.input}
-                placeholder="Senha"
-                placeholderTextColor="#B0B0B0"
-                secureTextEntry
-              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Senha"
+                  placeholderTextColor="#B0B0B0"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off' : 'eye'}
+                    size={20}
+                    color="#B0B0B0"
+                  />
+                </TouchableOpacity>
+              </View>
               
-              <TouchableOpacity style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>Entrar</Text>
+              <TouchableOpacity 
+                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Entrar</Text>
+                )}
               </TouchableOpacity>
             </View>
             
@@ -99,6 +153,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  passwordInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingRight: 50,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#E0EEFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: 14,
+    padding: 4,
+  },
   loginButton: {
     backgroundColor: '#007AFF',
     borderRadius: 12,
@@ -106,6 +181,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
   loginButtonText: {
     color: '#FFFFFF',

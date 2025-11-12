@@ -1,9 +1,38 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Cadastro({ navigation }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+
+  const handleRegister = async () => {
+    setLoading(true);
+    const result = await register(name, email, password, confirmPassword);
+    setLoading(false);
+
+    if (result.success) {
+      Alert.alert('Sucesso', result.message, [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
+    } else {
+      Alert.alert('Erro', result.message);
+    }
+  };
+
   return (
     <BackgroundImage style={styles.container}>
       <StatusBar style="light" />
@@ -26,6 +55,9 @@ export default function Cadastro({ navigation }) {
                   placeholder="Nome completo"
                   placeholderTextColor="#B0B0B0"
                   autoCapitalize="words"
+                  value={name}
+                  onChangeText={setName}
+                  editable={!loading}
                 />
                 
                 <TextInput
@@ -34,24 +66,67 @@ export default function Cadastro({ navigation }) {
                   placeholderTextColor="#B0B0B0"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={!loading}
                 />
                 
-                <TextInput
-                  style={styles.input}
-                  placeholder="Senha"
-                  placeholderTextColor="#B0B0B0"
-                  secureTextEntry
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Senha"
+                    placeholderTextColor="#B0B0B0"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    editable={!loading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
+                      size={20}
+                      color="#B0B0B0"
+                    />
+                  </TouchableOpacity>
+                </View>
                 
-                <TextInput
-                  style={styles.input}
-                  placeholder="Confirmar senha"
-                  placeholderTextColor="#B0B0B0"
-                  secureTextEntry
-                />
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Confirmar senha"
+                    placeholderTextColor="#B0B0B0"
+                    secureTextEntry={!showConfirmPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    editable={!loading}
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-off' : 'eye'}
+                      size={20}
+                      color="#B0B0B0"
+                    />
+                  </TouchableOpacity>
+                </View>
                 
-                <TouchableOpacity style={styles.button}>
-                  <Text style={styles.buttonText}>Cadastrar</Text>
+                <TouchableOpacity 
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleRegister}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Cadastrar</Text>
+                  )}
                 </TouchableOpacity>
               </View>
               
@@ -119,6 +194,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  passwordInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingRight: 50,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#E0EEFF',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: 14,
+    padding: 4,
+  },
   button: {
     backgroundColor: '#007AFF',
     borderRadius: 12,
@@ -126,6 +222,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#FFFFFF',
