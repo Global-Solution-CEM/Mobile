@@ -46,7 +46,7 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
     return Math.atan2(dy, dx) * (180 / Math.PI);
   };
 
-  // Handlers de toque para rotação
+  // Handlers de toque para rotação - SIMPLES E DIRETO
   const handleTouchStart = (evt) => {
     if (!isOpen) return;
     const { pageX, pageY } = evt.nativeEvent;
@@ -75,7 +75,7 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
   };
 
   const handleTouchEnd = () => {
-    if (!isOpen) return;
+    if (!isOpen || !isRotating.current) return;
     isRotating.current = false;
     
     // Snap para o item mais próximo
@@ -120,6 +120,9 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
   };
 
   const handleItemPress = (item) => {
+    // Parar rotação se estiver acontecendo
+    isRotating.current = false;
+    
     if (item.route && item.route !== currentRoute) {
       navigation.navigate(item.route);
     }
@@ -154,17 +157,6 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
       )}
 
       <View style={styles.container}>
-        {/* Área de toque para rotação */}
-        {isOpen && (
-          <View
-            style={styles.touchArea}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onTouchCancel={handleTouchEnd}
-          />
-        )}
-
         {/* Itens do menu em círculo */}
         {isOpen && (
           <Animated.View
@@ -178,6 +170,10 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
                 opacity: scaleAnim,
               },
             ]}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
           >
             {MENU_ITEMS.map((item, index) => {
               const angle = (index * 360) / MENU_ITEMS.length;
@@ -215,6 +211,7 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
                     ]}
                     onPress={() => handleItemPress(item)}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
                   >
                     <Ionicons
                       name={item.icon}
@@ -277,15 +274,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  touchArea: {
-    position: 'absolute',
-    top: -CIRCLE_RADIUS,
-    right: -CIRCLE_RADIUS,
-    width: CIRCLE_RADIUS * 2 + ITEM_SIZE,
-    height: CIRCLE_RADIUS * 2 + ITEM_SIZE,
-    zIndex: 999,
-    backgroundColor: 'transparent',
   },
   circleContainer: {
     position: 'absolute',
