@@ -15,6 +15,7 @@ import Home from './screens/Home';
 import MeusCursos from './screens/MeusCursos';
 import Trilhas from './screens/Trilhas';
 import Desafios from './screens/Desafios';
+import DesafioJogo from './screens/DesafioJogo';
 import Perfil from './screens/Perfil';
 import Configuracoes from './screens/Configuracoes';
 
@@ -135,6 +136,7 @@ function AppNavigator() {
           <Stack.Screen name="MeusCursos" component={MeusCursos} />
           <Stack.Screen name="Trilhas" component={Trilhas} />
           <Stack.Screen name="Desafios" component={Desafios} />
+          <Stack.Screen name="DesafioJogo" component={DesafioJogo} />
           <Stack.Screen name="Perfil" component={Perfil} />
           <Stack.Screen name="Configuracoes" component={Configuracoes} />
         </>

@@ -8,6 +8,7 @@ import CircularMenu from '../components/CircularMenu';
 import HeaderBack from '../components/HeaderBack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
+import { GameStorage } from '../services/GameStorage';
 import { getCursosSugeridos } from '../services/CursosService';
 import { useI18n } from '../i18n/I18nContext';
 
@@ -18,8 +19,8 @@ export default function Home({ navigation }) {
   const [stats, setStats] = useState({
     cursosEmAndamento: 2,
     cursosConcluidos: 1,
-    desafiosCompletos: 3,
-    pontos: 2300,
+    desafiosCompletos: 0,
+    pontos: 0,
     progressoGeral: 42,
   });
   const [proximoCurso, setProximoCurso] = useState(null);
@@ -28,9 +29,21 @@ export default function Home({ navigation }) {
     loadDashboardData();
   }, []);
 
+  // Recarregar quando voltar para a tela (para atualizar pontos)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadDashboardData();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const loadDashboardData = async () => {
     try {
       if (user?.id) {
+        // Carregar pontos reais
+        const pontos = await GameStorage.getUserPoints(user.id);
+        const completedChallenges = await GameStorage.getCompletedChallenges(user.id);
+        
         const preferences = await AuthStorage.getUserPreferences(user.id);
         if (preferences?.areasInteresse) {
           const cursos = getCursosSugeridos(preferences.areasInteresse);
@@ -39,6 +52,12 @@ export default function Home({ navigation }) {
             setProximoCurso(cursos[0]);
           }
         }
+
+        setStats(prev => ({
+          ...prev,
+          pontos: pontos,
+          desafiosCompletos: completedChallenges.length,
+        }));
       }
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);

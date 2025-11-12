@@ -7,58 +7,63 @@ import BackgroundImage from '../components/BackgroundImage';
 import CircularMenu from '../components/CircularMenu';
 import HeaderBack from '../components/HeaderBack';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../contexts/AuthContext';
+import { AuthStorage } from '../services/AuthStorage';
+import { GameStorage } from '../services/GameStorage';
+import { generateChallenges } from '../services/ChallengesService';
 
 export default function Desafios({ navigation }) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [desafios, setDesafios] = useState([]);
 
   useEffect(() => {
     loadDesafios();
   }, []);
 
-  const loadDesafios = () => {
-    // Dados simulados - em produção viria de uma API
-    setDesafios([
-      {
-        id: '1',
-        titulo: 'Desafio: Criar seu primeiro modelo de ML',
-        descricao: 'Implemente um modelo de machine learning do zero e publique os resultados',
-        dificuldade: 'Intermediário',
-        pontos: 500,
-        prazo: '7 dias',
-        status: 'disponivel',
-        icone: '🎯',
-      },
-      {
-        id: '2',
-        titulo: 'Desafio: Dashboard de Análise de Dados',
-        descricao: 'Crie um dashboard interativo com visualizações de dados reais',
-        dificuldade: 'Avançado',
-        pontos: 1000,
-        prazo: '14 dias',
-        status: 'emAndamento',
-        icone: '📊',
-      },
-      {
-        id: '3',
-        titulo: 'Desafio: App Mobile Completo',
-        descricao: 'Desenvolva um aplicativo mobile funcional com todas as features',
-        dificuldade: 'Avançado',
-        pontos: 1500,
-        prazo: '30 dias',
-        status: 'disponivel',
-        icone: '📱',
-      },
-      {
-        id: '4',
-        titulo: 'Desafio: API RESTful',
-        descricao: 'Construa uma API REST completa com autenticação e documentação',
-        dificuldade: 'Intermediário',
-        pontos: 800,
-        status: 'concluido',
-        icone: '🔌',
-      },
-    ]);
+  // Recarregar quando voltar para a tela (para atualizar status)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadDesafios();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadDesafios = async () => {
+    try {
+      if (user?.id) {
+        // Carregar preferências do usuário
+        const preferences = await AuthStorage.getUserPreferences(user.id);
+        if (preferences?.areasInteresse) {
+          // Gerar desafios baseados nas áreas de interesse
+          const generatedChallenges = generateChallenges(preferences.areasInteresse, t);
+          
+          // Carregar desafios concluídos
+          const completed = await GameStorage.getCompletedChallenges(user.id);
+
+          // Marcar status dos desafios
+          const challengesWithStatus = generatedChallenges.map((challenge) => {
+            const isCompleted = completed.includes(challenge.id);
+            return {
+              ...challenge,
+              status: isCompleted ? 'concluido' : 'disponivel',
+            };
+          });
+
+          setDesafios(challengesWithStatus);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar desafios:', error);
+    }
+  };
+
+  const handleChallengePress = (desafio) => {
+    if (desafio.status === 'concluido') {
+      // Mostrar mensagem que já foi concluído
+      return;
+    }
+    navigation.navigate('DesafioJogo', { desafio });
   };
 
   const getStatusColor = (status) => {
@@ -107,6 +112,8 @@ export default function Desafios({ navigation }) {
                       key={desafio.id}
                       style={styles.desafioCard}
                       activeOpacity={0.7}
+                      onPress={() => handleChallengePress(desafio)}
+                      disabled={desafio.status === 'concluido'}
                     >
                       <View style={styles.desafioHeader}>
                         <Text style={styles.desafioIcon}>{desafio.icone}</Text>
