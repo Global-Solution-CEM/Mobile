@@ -13,6 +13,7 @@ const MENU_ITEMS = [
   { id: 'cursos', label: 'Meus Cursos', icon: 'book', route: 'MeusCursos' },
   { id: 'trilhas', label: 'Trilhas', icon: 'map', route: 'Trilhas' },
   { id: 'desafios', label: 'Desafios', icon: 'trophy', route: 'Desafios' },
+  { id: 'configuracoes', label: 'Configurações', icon: 'settings', route: 'Configuracoes' },
   { id: 'perfil', label: 'Perfil', icon: 'person', route: 'Perfil' },
 ];
 

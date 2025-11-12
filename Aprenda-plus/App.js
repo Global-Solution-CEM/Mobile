@@ -12,6 +12,7 @@ import SelecaoNiveis from './screens/SelecaoNiveis';
 import ConfirmacaoInteresses from './screens/ConfirmacaoInteresses';
 import Home from './screens/Home';
 import Perfil from './screens/Perfil';
+import Configuracoes from './screens/Configuracoes';
 
 const Stack = createNativeStackNavigator();
 
@@ -128,6 +129,7 @@ function AppNavigator() {
           <Stack.Screen name="ConfirmacaoInteresses" component={ConfirmacaoInteresses} />
           <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Perfil" component={Perfil} />
+          <Stack.Screen name="Configuracoes" component={Configuracoes} />
         </>
       ) : (
         // Rotas não autenticadas
