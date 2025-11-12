@@ -12,6 +12,9 @@ import SelecaoAreas from './screens/SelecaoAreas';
 import SelecaoNiveis from './screens/SelecaoNiveis';
 import ConfirmacaoInteresses from './screens/ConfirmacaoInteresses';
 import Home from './screens/Home';
+import MeusCursos from './screens/MeusCursos';
+import Trilhas from './screens/Trilhas';
+import Desafios from './screens/Desafios';
 import Perfil from './screens/Perfil';
 import Configuracoes from './screens/Configuracoes';
 
@@ -129,6 +132,9 @@ function AppNavigator() {
           <Stack.Screen name="SelecaoNiveis" component={SelecaoNiveis} />
           <Stack.Screen name="ConfirmacaoInteresses" component={ConfirmacaoInteresses} />
           <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="MeusCursos" component={MeusCursos} />
+          <Stack.Screen name="Trilhas" component={Trilhas} />
+          <Stack.Screen name="Desafios" component={Desafios} />
           <Stack.Screen name="Perfil" component={Perfil} />
           <Stack.Screen name="Configuracoes" component={Configuracoes} />
         </>

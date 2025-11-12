@@ -61,8 +61,38 @@ export default {
   confirmarContinuar: 'Confirmar e Continuar',
   
   // Home
+  bomDia: 'Bom dia',
+  boaTarde: 'Boa tarde',
+  boaNoite: 'Boa noite',
+  usuario: 'Usuário',
+  seuProgresso: 'Seu Progresso',
+  continueAssim: 'Continue assim!',
+  emAndamento: 'Em Andamento',
+  continueAprendendo: 'Continue Aprendendo',
+  explorarTrilhas: 'Explorar Trilhas',
+  verDesafios: 'Ver Desafios',
   cursosSugeridosParaVoce: 'Cursos sugeridos para você',
   nenhumCursoSugerido: 'Nenhum curso sugerido no momento.',
+  
+  // Meus Cursos
+  cursosEmAndamento: 'Cursos em Andamento',
+  cursosConcluidos: 'Cursos Concluídos',
+  concluido: 'Concluído',
+  nenhumCursoInscrito: 'Você ainda não está inscrito em nenhum curso',
+  comeceAExplorar: 'Comece a explorar os cursos disponíveis!',
+  
+  // Trilhas
+  trilhasDescricao: 'Siga trilhas de aprendizado estruturadas para dominar uma área completa',
+  nenhumaTrilhaDisponivel: 'Nenhuma trilha disponível no momento',
+  cursos: 'cursos',
+  concluidos: 'concluídos',
+  
+  // Desafios
+  desafiosDescricao: 'Teste seus conhecimentos e ganhe pontos completando desafios práticos',
+  nenhumDesafioDisponivel: 'Nenhum desafio disponível no momento',
+  pontos: 'pontos',
+  disponivel: 'Disponível',
+  emAndamento: 'Em Andamento',
   
   // Perfil
   editarPerfil: 'Editar Perfil',

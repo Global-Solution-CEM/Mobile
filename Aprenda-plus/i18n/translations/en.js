@@ -61,8 +61,38 @@ export default {
   confirmarContinuar: 'Confirm and Continue',
   
   // Home
+  bomDia: 'Good morning',
+  boaTarde: 'Good afternoon',
+  boaNoite: 'Good evening',
+  usuario: 'User',
+  seuProgresso: 'Your Progress',
+  continueAssim: 'Keep it up!',
+  emAndamento: 'In Progress',
+  continueAprendendo: 'Continue Learning',
+  explorarTrilhas: 'Explore Paths',
+  verDesafios: 'View Challenges',
   cursosSugeridosParaVoce: 'Suggested courses for you',
   nenhumCursoSugerido: 'No suggested courses at the moment.',
+  
+  // My Courses
+  cursosEmAndamento: 'Courses in Progress',
+  cursosConcluidos: 'Completed Courses',
+  concluido: 'Completed',
+  nenhumCursoInscrito: 'You are not enrolled in any courses yet',
+  comeceAExplorar: 'Start exploring available courses!',
+  
+  // Paths
+  trilhasDescricao: 'Follow structured learning paths to master a complete area',
+  nenhumaTrilhaDisponivel: 'No paths available at the moment',
+  cursos: 'courses',
+  concluidos: 'completed',
+  
+  // Challenges
+  desafiosDescricao: 'Test your knowledge and earn points by completing practical challenges',
+  nenhumDesafioDisponivel: 'No challenges available at the moment',
+  pontos: 'points',
+  disponivel: 'Available',
+  emAndamento: 'In Progress',
   
   // Profile
   editarPerfil: 'Edit Profile',
