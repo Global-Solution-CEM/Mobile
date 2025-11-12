@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, ImageBackground, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Animated } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import BackgroundImage from '../components/BackgroundImage';
 
 export default function TelaInicial({ navigation }) {
   // Animações para os textos
@@ -93,11 +94,7 @@ export default function TelaInicial({ navigation }) {
   };
 
   return (
-    <ImageBackground 
-      source={require('../assets/bg-inicial.png')} 
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundImage style={styles.container}>
       <StatusBar style="light" />
       
       <View style={styles.content}>
@@ -157,7 +154,7 @@ export default function TelaInicial({ navigation }) {
           </Animated.View>
         </View>
       </View>
-    </ImageBackground>
+    </BackgroundImage>
   );
 }
 

@@ -1,14 +1,11 @@
-import { StyleSheet, Text, View, ImageBackground, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
+import BackgroundImage from '../components/BackgroundImage';
 
 export default function Cadastro({ navigation }) {
   return (
-    <ImageBackground 
-      source={require('../assets/bg-inicial.png')} 
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <BackgroundImage style={styles.container}>
       <StatusBar style="light" />
       
       <KeyboardAvoidingView 
@@ -70,7 +67,7 @@ export default function Cadastro({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </ImageBackground>
+    </BackgroundImage>
   );
 }
 
