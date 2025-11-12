@@ -33,18 +33,24 @@ export const AuthProvider = ({ children }) => {
         
         // Verificar se completou onboarding E se está no formato novo (com níveis)
         const preferences = await AuthStorage.getUserPreferences(userData.id);
-        const hasCompleted = preferences?.completedOnboarding || false;
         
-        // Verificar se as preferências estão no formato novo (com níveis)
-        const isFormatoNovo = preferences?.areasInteresse && 
-          Array.isArray(preferences.areasInteresse) &&
-          preferences.areasInteresse.length > 0 &&
-          typeof preferences.areasInteresse[0] === 'object' &&
-          preferences.areasInteresse[0].area &&
-          preferences.areasInteresse[0].nivel;
-        
-        // Só considera onboarding completo se tiver o formato novo com níveis
-        setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
+        // Se não existem preferências, usuário não completou onboarding
+        if (!preferences) {
+          setHasCompletedOnboarding(false);
+        } else {
+          const hasCompleted = preferences.completedOnboarding || false;
+          
+          // Verificar se as preferências estão no formato novo (com níveis)
+          const isFormatoNovo = preferences.areasInteresse && 
+            Array.isArray(preferences.areasInteresse) &&
+            preferences.areasInteresse.length > 0 &&
+            typeof preferences.areasInteresse[0] === 'object' &&
+            preferences.areasInteresse[0].area &&
+            preferences.areasInteresse[0].nivel;
+          
+          // Só considera onboarding completo se tiver o formato novo com níveis
+          setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
+        }
       } else {
         setUser(null);
         setIsAuthenticated(false);
@@ -91,18 +97,24 @@ export const AuthProvider = ({ children }) => {
         
         // Verificar se completou onboarding E se está no formato novo (com níveis)
         const preferences = await AuthStorage.getUserPreferences(userData.id);
-        const hasCompleted = preferences?.completedOnboarding || false;
         
-        // Verificar se as preferências estão no formato novo (com níveis)
-        const isFormatoNovo = preferences?.areasInteresse && 
-          Array.isArray(preferences.areasInteresse) &&
-          preferences.areasInteresse.length > 0 &&
-          typeof preferences.areasInteresse[0] === 'object' &&
-          preferences.areasInteresse[0].area &&
-          preferences.areasInteresse[0].nivel;
-        
-        // Só considera onboarding completo se tiver o formato novo com níveis
-        setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
+        // Se não existem preferências, usuário não completou onboarding
+        if (!preferences) {
+          setHasCompletedOnboarding(false);
+        } else {
+          const hasCompleted = preferences.completedOnboarding || false;
+          
+          // Verificar se as preferências estão no formato novo (com níveis)
+          const isFormatoNovo = preferences.areasInteresse && 
+            Array.isArray(preferences.areasInteresse) &&
+            preferences.areasInteresse.length > 0 &&
+            typeof preferences.areasInteresse[0] === 'object' &&
+            preferences.areasInteresse[0].area &&
+            preferences.areasInteresse[0].nivel;
+          
+          // Só considera onboarding completo se tiver o formato novo com níveis
+          setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
+        }
         
         return {
           success: true,
@@ -182,7 +194,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const saveUserPreferences = async (areasComNiveis) => {
+  const saveUserPreferences = async (areasComNiveis, markCompleted = false) => {
     try {
       if (!user || !user.id) {
         return {
@@ -205,10 +217,13 @@ export const AuthProvider = ({ children }) => {
         areasParaSalvar = areasComNiveis;
       }
 
-      const saved = await AuthStorage.saveUserPreferences(user.id, areasParaSalvar);
+      const saved = await AuthStorage.saveUserPreferences(user.id, areasParaSalvar, markCompleted);
       
       if (saved) {
-        setHasCompletedOnboarding(true);
+        // Só atualizar o estado se for para marcar como completo
+        if (markCompleted) {
+          setHasCompletedOnboarding(true);
+        }
         return {
           success: true,
           message: 'Preferências salvas com sucesso!',

@@ -1,6 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import TelaInicial from './screens/TelaInicial';
 import Login from './screens/Login';
@@ -17,6 +18,63 @@ const Stack = createNativeStackNavigator();
 // Componente de navegação que verifica autenticação
 function AppNavigator() {
   const { isAuthenticated, hasCompletedOnboarding, loading } = useAuth();
+  const navigationRef = useRef(null);
+
+  // Navegar baseado no estado de autenticação e onboarding
+  useEffect(() => {
+    if (loading) return;
+    
+    // Aguardar um pouco para garantir que o NavigationContainer está pronto
+    const timer = setTimeout(() => {
+      if (!navigationRef.current) return;
+
+      const currentRoute = navigationRef.current.getCurrentRoute();
+      const currentRouteName = currentRoute?.name;
+
+      // Não navegar se já estiver na tela correta ou em uma tela do fluxo de onboarding
+      if (currentRouteName === 'ConfirmacaoInteresses' || 
+          currentRouteName === 'SelecaoNiveis' ||
+          currentRouteName === 'SelecaoAreas') {
+        // Se está em uma tela do onboarding, só navegar se não estiver autenticado
+        if (!isAuthenticated) {
+          navigationRef.current.reset({
+            index: 0,
+            routes: [{ name: 'TelaInicial' }],
+          });
+        }
+        return;
+      }
+
+      if (!isAuthenticated) {
+        navigationRef.current.reset({
+          index: 0,
+          routes: [{ name: 'TelaInicial' }],
+        });
+      } else if (isAuthenticated && !hasCompletedOnboarding) {
+        // Só navegar para SelecaoAreas se não estiver já em uma tela do onboarding
+        if (currentRouteName !== 'SelecaoAreas' && 
+            currentRouteName !== 'SelecaoNiveis' && 
+            currentRouteName !== 'ConfirmacaoInteresses') {
+          navigationRef.current.reset({
+            index: 0,
+            routes: [{ name: 'SelecaoAreas' }],
+          });
+        }
+      } else if (isAuthenticated && hasCompletedOnboarding) {
+        // Só navegar para Home se não estiver em uma tela do onboarding
+        if (currentRouteName !== 'SelecaoAreas' && 
+            currentRouteName !== 'SelecaoNiveis' && 
+            currentRouteName !== 'ConfirmacaoInteresses') {
+          navigationRef.current.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          });
+        }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, hasCompletedOnboarding, loading]);
 
   if (loading) {
     return (
@@ -38,9 +96,10 @@ function AppNavigator() {
   };
 
   return (
-    <Stack.Navigator 
-      initialRouteName={getInitialRoute()}
-      screenOptions={{
+    <NavigationContainer ref={navigationRef}>
+      <Stack.Navigator 
+        initialRouteName={getInitialRoute()}
+        screenOptions={{
         headerShown: false,
         animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right',
         animationDuration: 300,
@@ -86,6 +145,7 @@ function AppNavigator() {
         </>
       )}
     </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -133,9 +193,7 @@ const fadeTransition = ({ current }) => {
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
+      <AppNavigator />
     </AuthProvider>
   );
 }

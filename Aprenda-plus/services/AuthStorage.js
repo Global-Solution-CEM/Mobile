@@ -110,7 +110,7 @@ export const AuthStorage = {
   },
 
   // Salvar preferências do usuário (áreas de interesse com níveis)
-  async saveUserPreferences(userId, areasComNiveis) {
+  async saveUserPreferences(userId, areasComNiveis, markCompleted = false) {
     try {
       const preferencesKey = `@aprenda_plus:preferences_${userId}`;
       
@@ -128,9 +128,13 @@ export const AuthStorage = {
         areasInteresse = areasComNiveis;
       }
 
+      // Obter preferências existentes para preservar completedOnboarding se não for para marcar
+      const existingPreferences = await this.getUserPreferences(userId);
+      const completedOnboarding = markCompleted ? true : (existingPreferences?.completedOnboarding || false);
+
       const preferences = {
         areasInteresse: areasInteresse,
-        completedOnboarding: true,
+        completedOnboarding: completedOnboarding,
         updatedAt: new Date().toISOString(),
       };
       await AsyncStorage.setItem(preferencesKey, JSON.stringify(preferences));

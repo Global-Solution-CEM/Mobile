@@ -21,6 +21,8 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
   const [isOpen, setIsOpen] = useState(false);
   const rotationAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
+  const tutorialRotation = useRef(new Animated.Value(0)).current;
+  const tutorialOpacity = useRef(new Animated.Value(0)).current;
   const lastAngle = useRef(0);
   const isRotating = useRef(false);
 
@@ -52,6 +54,10 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
     const { pageX, pageY } = evt.nativeEvent;
     lastAngle.current = getAngle(pageX, pageY);
     isRotating.current = true;
+    
+    // Parar tutorial se usuário começar a interagir
+    tutorialRotation.stopAnimation();
+    tutorialOpacity.stopAnimation();
   };
 
   const handleTouchMove = (evt) => {
@@ -96,6 +102,10 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
 
   const toggleMenu = () => {
     if (isOpen) {
+      // Parar animação de tutorial se estiver rodando
+      tutorialRotation.stopAnimation();
+      tutorialOpacity.stopAnimation();
+      
       Animated.timing(scaleAnim, {
         toValue: 0,
         duration: 300,
@@ -116,7 +126,37 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
         friction: 7,
         useNativeDriver: true,
       }).start();
+
+      // Mostrar animação de tutorial sempre que o menu abrir
+      setTimeout(() => {
+        startTutorialAnimation();
+      }, 400); // Aguardar menu abrir completamente
     }
+  };
+
+  const startTutorialAnimation = () => {
+    // Resetar valores
+    tutorialRotation.setValue(0);
+    tutorialOpacity.setValue(0);
+
+    // Animação: fade in + rotação completa (mais lenta) - loop infinito
+    Animated.parallel([
+      Animated.timing(tutorialOpacity, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(tutorialRotation, {
+            toValue: 360,
+            duration: 3500, // Mais lento: 3.5 segundos
+            useNativeDriver: true,
+          }),
+          Animated.delay(800), // Pausa maior
+        ])
+      ),
+    ]).start();
   };
 
   const handleItemPress = (item) => {
@@ -134,6 +174,12 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
     inputRange: [-720, -360, 0, 360, 720],
     outputRange: ['-720deg', '-360deg', '0deg', '360deg', '720deg'],
     extrapolate: 'clamp',
+  });
+
+  // Interpolação para animação de tutorial
+  const tutorialRotateInterpolate = tutorialRotation.interpolate({
+    inputRange: [0, 360],
+    outputRange: ['0deg', '360deg'],
   });
 
   return (
@@ -157,6 +203,37 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
       )}
 
       <View style={styles.container}>
+        {/* Animação de tutorial - seta girando */}
+        {isOpen && (
+          <Animated.View
+            style={[
+              styles.tutorialContainer,
+              {
+                opacity: tutorialOpacity,
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <Animated.View
+              style={[
+                styles.tutorialArrowContainer,
+                {
+                  transform: [
+                    { rotate: tutorialRotateInterpolate },
+                  ],
+                },
+              ]}
+            >
+              <View style={styles.tutorialArrow}>
+                <Ionicons name="arrow-forward" size={20} color="#007AFF" />
+              </View>
+            </Animated.View>
+            <View style={styles.tutorialTextContainer}>
+              <Text style={styles.tutorialText}>Arraste para rotacionar</Text>
+            </View>
+          </Animated.View>
+        )}
+
         {/* Itens do menu em círculo */}
         {isOpen && (
           <Animated.View
@@ -335,5 +412,45 @@ const styles = StyleSheet.create({
     color: '#E0EEFF',
     fontSize: 11,
     fontWeight: '500',
+  },
+  tutorialContainer: {
+    position: 'absolute',
+    width: CIRCLE_RADIUS * 2 + ITEM_SIZE,
+    height: CIRCLE_RADIUS * 2 + ITEM_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1002,
+  },
+  tutorialArrowContainer: {
+    position: 'absolute',
+    width: CIRCLE_RADIUS * 2 + ITEM_SIZE,
+    height: CIRCLE_RADIUS * 2 + ITEM_SIZE,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  tutorialArrow: {
+    marginTop: 10,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 122, 255, 0.3)',
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  tutorialTextContainer: {
+    position: 'absolute',
+    bottom: -60,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  tutorialText: {
+    color: '#E0EEFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
