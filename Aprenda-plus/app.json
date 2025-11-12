@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Aprenda+",
+    "name": "",
     "slug": "Aprenda-plus",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,19 +10,19 @@
     "splash": {
       "image": "./assets/Aprenda+.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F39C12"
     },
     "ios": {
       "supportsTablet": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/Aprenda+.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F39C12"
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/Aprenda+.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F39C12"
       },
       "edgeToEdgeEnabled": true
     },
