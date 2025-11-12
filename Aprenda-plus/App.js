@@ -4,28 +4,32 @@ import { useEffect, useRef } from 'react';
 
 export default function App() {
   // Animações para os textos
-  const fadeAnimWelcome = useRef(new Animated.Value(0)).current;
-  const slideAnimWelcome = useRef(new Animated.Value(50)).current;
+  const welcomeOpacity = useRef(new Animated.Value(0)).current;
+  const welcomeTranslateY = useRef(new Animated.Value(30)).current;
   
-  const fadeAnimAppName = useRef(new Animated.Value(0)).current;
-  const slideAnimAppName = useRef(new Animated.Value(50)).current;
+  const appNameOpacity = useRef(new Animated.Value(0)).current;
+  const appNameTranslateY = useRef(new Animated.Value(30)).current;
   
-  const fadeAnimDescription = useRef(new Animated.Value(0)).current;
-  const slideAnimDescription = useRef(new Animated.Value(50)).current;
+  const descriptionOpacity = useRef(new Animated.Value(0)).current;
+  const descriptionTranslateY = useRef(new Animated.Value(30)).current;
+  const descriptionOpacityValue = descriptionOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.85],
+  });
   
   // Animações para o botão
-  const fadeAnimButton = useRef(new Animated.Value(0)).current;
-  const scaleAnimButton = useRef(new Animated.Value(0.8)).current;
+  const buttonOpacity = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     // Animação do texto "Bem Vindo ao"
     Animated.parallel([
-      Animated.timing(fadeAnimWelcome, {
+      Animated.timing(welcomeOpacity, {
         toValue: 1,
         duration: 800,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnimWelcome, {
+      Animated.timing(welcomeTranslateY, {
         toValue: 0,
         duration: 800,
         useNativeDriver: true,
@@ -35,12 +39,12 @@ export default function App() {
     // Animação do texto "Aprenda+" com delay
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(fadeAnimAppName, {
+        Animated.timing(appNameOpacity, {
           toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }),
-        Animated.timing(slideAnimAppName, {
+        Animated.timing(appNameTranslateY, {
           toValue: 0,
           duration: 800,
           useNativeDriver: true,
@@ -51,12 +55,12 @@ export default function App() {
     // Animação da descrição com delay
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(fadeAnimDescription, {
-          toValue: 0.85,
+        Animated.timing(descriptionOpacity, {
+          toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }),
-        Animated.timing(slideAnimDescription, {
+        Animated.timing(descriptionTranslateY, {
           toValue: 0,
           duration: 800,
           useNativeDriver: true,
@@ -64,18 +68,18 @@ export default function App() {
       ]).start();
     }, 400);
 
-    // Animação do botão com delay e scale
+    // Animação do botão com delay e efeito de scale
     setTimeout(() => {
       Animated.parallel([
-        Animated.timing(fadeAnimButton, {
+        Animated.timing(buttonOpacity, {
           toValue: 1,
           duration: 600,
           useNativeDriver: true,
         }),
-        Animated.spring(scaleAnimButton, {
+        Animated.spring(buttonScale, {
           toValue: 1,
-          friction: 4,
-          tension: 40,
+          tension: 50,
+          friction: 7,
           useNativeDriver: true,
         }),
       ]).start();
@@ -101,8 +105,8 @@ export default function App() {
             style={[
               styles.welcomeText,
               {
-                opacity: fadeAnimWelcome,
-                transform: [{ translateY: slideAnimWelcome }],
+                opacity: welcomeOpacity,
+                transform: [{ translateY: welcomeTranslateY }],
               },
             ]}
           >
@@ -113,8 +117,8 @@ export default function App() {
             style={[
               styles.appName,
               {
-                opacity: fadeAnimAppName,
-                transform: [{ translateY: slideAnimAppName }],
+                opacity: appNameOpacity,
+                transform: [{ translateY: appNameTranslateY }],
               },
             ]}
           >
@@ -125,8 +129,8 @@ export default function App() {
             style={[
               styles.description,
               {
-                opacity: fadeAnimDescription,
-                transform: [{ translateY: slideAnimDescription }],
+                opacity: descriptionOpacityValue,
+                transform: [{ translateY: descriptionTranslateY }],
               },
             ]}
           >
@@ -134,10 +138,13 @@ export default function App() {
           </Animated.Text>
           
           <Animated.View
-            style={{
-              opacity: fadeAnimButton,
-              transform: [{ scale: scaleAnimButton }],
-            }}
+            style={[
+              styles.buttonContainer,
+              {
+                opacity: buttonOpacity,
+                transform: [{ scale: buttonScale }],
+              },
+            ]}
           >
             <TouchableOpacity 
               style={styles.button}
@@ -177,7 +184,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 60,
-    color: '#E0EEFF',
+    color: '#A660DB',
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'left',
@@ -190,15 +197,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     marginBottom: 32,
   },
+  buttonContainer: {
+    marginTop: 30,
+    alignSelf: 'center',
+  },
   button: {
     backgroundColor: '#007AFF',
     width: 250,
-    marginTop: 30,
     paddingVertical: 18,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
   },
   buttonText: {
     color: '#FFFFFF',
