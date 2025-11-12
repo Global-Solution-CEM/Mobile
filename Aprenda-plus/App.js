@@ -6,13 +6,15 @@ import TelaInicial from './screens/TelaInicial';
 import Login from './screens/Login';
 import EsqueceuSenha from './screens/EsqueceuSenha';
 import Cadastro from './screens/Cadastro';
+import SelecaoAreas from './screens/SelecaoAreas';
+import SelecaoNiveis from './screens/SelecaoNiveis';
 import Home from './screens/Home';
 
 const Stack = createNativeStackNavigator();
 
 // Componente de navegação que verifica autenticação
 function AppNavigator() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding, loading } = useAuth();
 
   if (loading) {
     return (
@@ -22,9 +24,20 @@ function AppNavigator() {
     );
   }
 
+  // Determinar a rota inicial baseada no estado de autenticação e onboarding
+  const getInitialRoute = () => {
+    if (!isAuthenticated) {
+      return 'TelaInicial';
+    }
+    if (isAuthenticated && !hasCompletedOnboarding) {
+      return 'SelecaoAreas';
+    }
+    return 'Home';
+  };
+
   return (
     <Stack.Navigator 
-      initialRouteName={isAuthenticated ? "Home" : "TelaInicial"}
+      initialRouteName={getInitialRoute()}
       screenOptions={{
         headerShown: false,
         animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right',
@@ -47,8 +60,10 @@ function AppNavigator() {
       }}
     >
       {isAuthenticated ? (
-        // Rotas autenticadas
+        // Rotas autenticadas - sempre registrar todas para permitir navegação
         <>
+          <Stack.Screen name="SelecaoAreas" component={SelecaoAreas} />
+          <Stack.Screen name="SelecaoNiveis" component={SelecaoNiveis} />
           <Stack.Screen name="Home" component={Home} />
         </>
       ) : (

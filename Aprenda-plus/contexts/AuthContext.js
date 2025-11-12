@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   // Verificar se o usuário está logado ao iniciar
   useEffect(() => {
@@ -29,14 +30,31 @@ export const AuthProvider = ({ children }) => {
       if (userData && token) {
         setUser(userData);
         setIsAuthenticated(true);
+        
+        // Verificar se completou onboarding E se está no formato novo (com níveis)
+        const preferences = await AuthStorage.getUserPreferences(userData.id);
+        const hasCompleted = preferences?.completedOnboarding || false;
+        
+        // Verificar se as preferências estão no formato novo (com níveis)
+        const isFormatoNovo = preferences?.areasInteresse && 
+          Array.isArray(preferences.areasInteresse) &&
+          preferences.areasInteresse.length > 0 &&
+          typeof preferences.areasInteresse[0] === 'object' &&
+          preferences.areasInteresse[0].area &&
+          preferences.areasInteresse[0].nivel;
+        
+        // Só considera onboarding completo se tiver o formato novo com níveis
+        setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        setHasCompletedOnboarding(false);
       }
     } catch (error) {
       console.error('Erro ao verificar status de autenticação:', error);
       setUser(null);
       setIsAuthenticated(false);
+      setHasCompletedOnboarding(false);
     } finally {
       setLoading(false);
     }
@@ -70,6 +88,22 @@ export const AuthProvider = ({ children }) => {
       if (saved) {
         setUser(userToSave);
         setIsAuthenticated(true);
+        
+        // Verificar se completou onboarding E se está no formato novo (com níveis)
+        const preferences = await AuthStorage.getUserPreferences(userData.id);
+        const hasCompleted = preferences?.completedOnboarding || false;
+        
+        // Verificar se as preferências estão no formato novo (com níveis)
+        const isFormatoNovo = preferences?.areasInteresse && 
+          Array.isArray(preferences.areasInteresse) &&
+          preferences.areasInteresse.length > 0 &&
+          typeof preferences.areasInteresse[0] === 'object' &&
+          preferences.areasInteresse[0].area &&
+          preferences.areasInteresse[0].nivel;
+        
+        // Só considera onboarding completo se tiver o formato novo com níveis
+        setHasCompletedOnboarding(hasCompleted && isFormatoNovo);
+        
         return {
           success: true,
           message: 'Login realizado com sucesso!',
@@ -148,11 +182,58 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const saveUserPreferences = async (areasComNiveis) => {
+    try {
+      if (!user || !user.id) {
+        return {
+          success: false,
+          message: 'Usuário não autenticado',
+        };
+      }
+
+      // Converter para formato compatível (array de áreas ou array de objetos com área e nível)
+      let areasParaSalvar;
+      if (Array.isArray(areasComNiveis) && areasComNiveis.length > 0) {
+        // Se é array de objetos {area, nivel}
+        if (typeof areasComNiveis[0] === 'object' && areasComNiveis[0].area) {
+          areasParaSalvar = areasComNiveis;
+        } else {
+          // Se é array simples de IDs (compatibilidade com código antigo)
+          areasParaSalvar = areasComNiveis;
+        }
+      } else {
+        areasParaSalvar = areasComNiveis;
+      }
+
+      const saved = await AuthStorage.saveUserPreferences(user.id, areasParaSalvar);
+      
+      if (saved) {
+        setHasCompletedOnboarding(true);
+        return {
+          success: true,
+          message: 'Preferências salvas com sucesso!',
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Erro ao salvar preferências',
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao salvar preferências:', error);
+      return {
+        success: false,
+        message: 'Erro ao salvar preferências. Tente novamente.',
+      };
+    }
+  };
+
   const logout = async () => {
     try {
       await AuthStorage.removeUser();
       setUser(null);
       setIsAuthenticated(false);
+      setHasCompletedOnboarding(false);
       return { success: true };
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
@@ -166,9 +247,11 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         isAuthenticated,
+        hasCompletedOnboarding,
         login,
         register,
         logout,
+        saveUserPreferences,
         checkAuthStatus,
       }}
     >

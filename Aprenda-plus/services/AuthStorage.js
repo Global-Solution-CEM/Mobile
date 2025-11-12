@@ -108,5 +108,49 @@ export const AuthStorage = {
       return null;
     }
   },
+
+  // Salvar preferências do usuário (áreas de interesse com níveis)
+  async saveUserPreferences(userId, areasComNiveis) {
+    try {
+      const preferencesKey = `@aprenda_plus:preferences_${userId}`;
+      
+      // Verificar se é array de objetos {area, nivel} ou array simples
+      let areasInteresse;
+      if (Array.isArray(areasComNiveis) && areasComNiveis.length > 0) {
+        if (typeof areasComNiveis[0] === 'object' && areasComNiveis[0].area) {
+          // Formato novo: [{area: 'ia', nivel: 'Iniciante'}, ...]
+          areasInteresse = areasComNiveis;
+        } else {
+          // Formato antigo: ['ia', 'dados', ...] (compatibilidade)
+          areasInteresse = areasComNiveis;
+        }
+      } else {
+        areasInteresse = areasComNiveis;
+      }
+
+      const preferences = {
+        areasInteresse: areasInteresse,
+        completedOnboarding: true,
+        updatedAt: new Date().toISOString(),
+      };
+      await AsyncStorage.setItem(preferencesKey, JSON.stringify(preferences));
+      return true;
+    } catch (error) {
+      console.error('Erro ao salvar preferências:', error);
+      return false;
+    }
+  },
+
+  // Obter preferências do usuário
+  async getUserPreferences(userId) {
+    try {
+      const preferencesKey = `@aprenda_plus:preferences_${userId}`;
+      const preferences = await AsyncStorage.getItem(preferencesKey);
+      return preferences ? JSON.parse(preferences) : null;
+    } catch (error) {
+      console.error('Erro ao obter preferências:', error);
+      return null;
+    }
+  },
 };
 
