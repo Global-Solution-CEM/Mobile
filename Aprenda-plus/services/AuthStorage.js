@@ -152,5 +152,50 @@ export const AuthStorage = {
       return null;
     }
   },
+
+  // Atualizar dados do usuário registrado
+  async updateRegisteredUser(userId, updates) {
+    try {
+      const users = await this.getRegisteredUsers();
+      const userIndex = users.findIndex(u => u.id === userId);
+      
+      if (userIndex === -1) {
+        return false;
+      }
+
+      users[userIndex] = {
+        ...users[userIndex],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const usersKey = '@aprenda_plus:registered_users';
+      await AsyncStorage.setItem(usersKey, JSON.stringify(users));
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      return false;
+    }
+  },
+
+  // Excluir usuário registrado
+  async deleteRegisteredUser(userId) {
+    try {
+      const users = await this.getRegisteredUsers();
+      const filteredUsers = users.filter(u => u.id !== userId);
+      
+      const usersKey = '@aprenda_plus:registered_users';
+      await AsyncStorage.setItem(usersKey, JSON.stringify(filteredUsers));
+      
+      // Remover preferências do usuário
+      const preferencesKey = `@aprenda_plus:preferences_${userId}`;
+      await AsyncStorage.removeItem(preferencesKey);
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
+      return false;
+    }
+  },
 };
 

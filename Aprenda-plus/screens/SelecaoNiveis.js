@@ -62,7 +62,7 @@ export default function SelecaoNiveis({ route, navigation }) {
     const result = await saveUserPreferences(areasComNiveis);
     
     if (result.success) {
-      navigation.navigate('Home');
+      navigation.navigate('ConfirmacaoInteresses');
     } else {
       Alert.alert('Erro', 'Não foi possível salvar suas preferências. Tente novamente.');
     }

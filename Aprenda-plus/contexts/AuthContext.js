@@ -228,6 +228,86 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (name, email, password) => {
+    try {
+      if (!user || !user.id) {
+        return {
+          success: false,
+          message: 'Usuário não autenticado',
+        };
+      }
+
+      const updates = {};
+      if (name) updates.name = name;
+      if (email) updates.email = email;
+      if (password) updates.password = password;
+
+      const updated = await AuthStorage.updateRegisteredUser(user.id, updates);
+      
+      if (updated) {
+        // Atualizar dados do usuário logado
+        const updatedUser = {
+          ...user,
+          ...updates,
+        };
+        await AuthStorage.saveUser(updatedUser);
+        setUser(updatedUser);
+        
+        return {
+          success: true,
+          message: 'Perfil atualizado com sucesso!',
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Erro ao atualizar perfil',
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      return {
+        success: false,
+        message: 'Erro ao atualizar perfil. Tente novamente.',
+      };
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      if (!user || !user.id) {
+        return {
+          success: false,
+          message: 'Usuário não autenticado',
+        };
+      }
+
+      const deleted = await AuthStorage.deleteRegisteredUser(user.id);
+      
+      if (deleted) {
+        await AuthStorage.removeUser();
+        setUser(null);
+        setIsAuthenticated(false);
+        setHasCompletedOnboarding(false);
+        
+        return {
+          success: true,
+          message: 'Conta excluída com sucesso!',
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Erro ao excluir conta',
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao excluir conta:', error);
+      return {
+        success: false,
+        message: 'Erro ao excluir conta. Tente novamente.',
+      };
+    }
+  };
+
   const logout = async () => {
     try {
       await AuthStorage.removeUser();
@@ -252,6 +332,8 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         saveUserPreferences,
+        updateProfile,
+        deleteAccount,
         checkAuthStatus,
       }}
     >
