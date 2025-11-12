@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
@@ -6,17 +6,22 @@ import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
 import HeaderBack from '../components/HeaderBack';
 import CircularMenu from '../components/CircularMenu';
-
-const IDIOMAS = [
-  { id: 'pt', label: 'Português', flag: '🇧🇷' },
-  { id: 'en', label: 'English', flag: '🇺🇸' },
-  { id: 'es', label: 'Español', flag: '🇪🇸' },
-];
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Configuracoes({ navigation }) {
+  const { t, language, changeLanguage } = useI18n();
   const [modoEscuro, setModoEscuro] = useState(true);
   const [notificacoes, setNotificacoes] = useState(true);
-  const [idiomaSelecionado, setIdiomaSelecionado] = useState('pt');
+  
+  const IDIOMAS = [
+    { id: 'pt', label: t('portugues'), flag: '🇧🇷' },
+    { id: 'en', label: t('english'), flag: '🇺🇸' },
+    { id: 'es', label: t('espanol'), flag: '🇪🇸' },
+  ];
+
+  const handleIdiomaChange = (idiomaId) => {
+    changeLanguage(idiomaId);
+  };
 
   return (
     <BackgroundImage style={styles.container}>
@@ -30,16 +35,16 @@ export default function Configuracoes({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Configurações</Text>
+            <Text style={styles.title}>{t('configuracoesTitulo')}</Text>
 
             {/* Modo Escuro/Claro */}
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
                 <Ionicons name="moon" size={24} color="#007AFF" style={styles.settingIcon} />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingLabel}>Modo Escuro</Text>
+                  <Text style={styles.settingLabel}>{t('modoEscuro')}</Text>
                   <Text style={styles.settingDescription}>
-                    Ative para usar o tema escuro
+                    {t('modoEscuroDesc')}
                   </Text>
                 </View>
               </View>
@@ -56,10 +61,10 @@ export default function Configuracoes({ navigation }) {
             <View style={styles.settingSection}>
               <View style={styles.settingHeader}>
                 <Ionicons name="language" size={24} color="#007AFF" style={styles.settingIcon} />
-                <Text style={styles.sectionTitle}>Idioma</Text>
+                <Text style={styles.sectionTitle}>{t('idioma')}</Text>
               </View>
               <Text style={styles.settingDescription}>
-                Selecione o idioma do aplicativo
+                {t('idiomaDesc')}
               </Text>
               <View style={styles.idiomaOptions}>
                 {IDIOMAS.map((idioma) => (
@@ -67,20 +72,20 @@ export default function Configuracoes({ navigation }) {
                     key={idioma.id}
                     style={[
                       styles.idiomaOption,
-                      idiomaSelecionado === idioma.id && styles.idiomaOptionSelected,
+                      language === idioma.id && styles.idiomaOptionSelected,
                     ]}
-                    onPress={() => setIdiomaSelecionado(idioma.id)}
+                    onPress={() => handleIdiomaChange(idioma.id)}
                   >
                     <Text style={styles.idiomaFlag}>{idioma.flag}</Text>
                     <Text
                       style={[
                         styles.idiomaLabel,
-                        idiomaSelecionado === idioma.id && styles.idiomaLabelSelected,
+                        language === idioma.id && styles.idiomaLabelSelected,
                       ]}
                     >
                       {idioma.label}
                     </Text>
-                    {idiomaSelecionado === idioma.id && (
+                    {language === idioma.id && (
                       <Ionicons name="checkmark-circle" size={24} color="#007AFF" />
                     )}
                   </TouchableOpacity>
@@ -93,9 +98,9 @@ export default function Configuracoes({ navigation }) {
               <View style={styles.settingInfo}>
                 <Ionicons name="notifications" size={24} color="#007AFF" style={styles.settingIcon} />
                 <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingLabel}>Notificações</Text>
+                  <Text style={styles.settingLabel}>{t('notificacoes')}</Text>
                   <Text style={styles.settingDescription}>
-                    Receba notificações sobre novos cursos e atualizações
+                    {t('notificacoesDesc')}
                   </Text>
                 </View>
               </View>

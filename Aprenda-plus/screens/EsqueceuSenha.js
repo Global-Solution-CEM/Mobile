@@ -2,8 +2,10 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingVi
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import BackgroundImage from '../components/BackgroundImage';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function EsqueceuSenha({ navigation }) {
+  const { t } = useI18n();
   return (
     <BackgroundImage style={styles.container}>
       <StatusBar style="light" />
@@ -14,29 +16,29 @@ export default function EsqueceuSenha({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Esqueceu a senha?</Text>
+            <Text style={styles.title}>{t('esqueceuSenhaTitulo')}</Text>
             
             <Text style={styles.description}>
-              Digite seu email e enviaremos um link para redefinir sua senha.
+              {t('esqueceuSenhaDescricao')}
             </Text>
             
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t('email')}
                 placeholderTextColor="#B0B0B0"
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
               
               <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Enviar link</Text>
+                <Text style={styles.buttonText}>{t('enviarLink')}</Text>
               </TouchableOpacity>
             </View>
             
             <View style={styles.footer}>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.footerText}>Voltar para o login</Text>
+                <Text style={styles.footerText}>{t('voltarLogin')}</Text>
               </TouchableOpacity>
             </View>
           </BlurView>

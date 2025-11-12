@@ -1,7 +1,10 @@
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useI18n } from '../i18n/I18nContext';
 
-export default function HeaderBack({ navigation, title = 'Voltar' }) {
+export default function HeaderBack({ navigation, title }) {
+  const { t } = useI18n();
+  const displayTitle = title || t('voltar');
   const handleGoBack = () => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -16,7 +19,7 @@ export default function HeaderBack({ navigation, title = 'Voltar' }) {
         activeOpacity={0.7}
       >
         <Ionicons name="arrow-back" size={24} color="#E0EEFF" />
-        <Text style={styles.backText}>{title}</Text>
+        <Text style={styles.backText}>{displayTitle}</Text>
       </TouchableOpacity>
     </View>
   );

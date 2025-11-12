@@ -6,24 +6,12 @@ import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
 import { getCursosSugeridos } from '../services/CursosService';
-
-// Mapeamento de IDs de áreas para nomes
-const AREAS_NAMES = {
-  ia: 'Inteligência Artificial',
-  dados: 'Ciência de Dados',
-  sustentabilidade: 'Sustentabilidade',
-  programacao: 'Programação',
-  design: 'Design',
-  marketing: 'Marketing Digital',
-  gestao: 'Gestão',
-  vendas: 'Vendas',
-  rh: 'Recursos Humanos',
-  financas: 'Finanças',
-  saude: 'Saúde',
-  educacao: 'Educação',
-};
+import { useI18n } from '../i18n/I18nContext';
+import { getAreasNames } from '../i18n/helpers';
 
 export default function ConfirmacaoInteresses({ navigation }) {
+  const { t } = useI18n();
+  const AREAS_NAMES = getAreasNames(t);
   const { user, saveUserPreferences } = useAuth();
   const [areasInteresse, setAreasInteresse] = useState([]);
   const [cursosSugeridos, setCursosSugeridos] = useState([]);
@@ -87,15 +75,15 @@ export default function ConfirmacaoInteresses({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Confirme seus interesses</Text>
+            <Text style={styles.title}>{t('confirmeInteresses')}</Text>
             
             <Text style={styles.description}>
-              Revise suas áreas de interesse e níveis de conhecimento selecionados:
+              {t('confirmeInteressesDesc')}
             </Text>
 
             {areasInteresse.length > 0 && (
               <View style={styles.areasSection}>
-                <Text style={styles.sectionTitle}>Suas áreas de interesse:</Text>
+                <Text style={styles.sectionTitle}>{t('suasAreasInteresse')}</Text>
                 {areasInteresse.map((area, index) => (
                   <View 
                     key={typeof area === 'object' ? area.area : area || index} 
@@ -111,7 +99,7 @@ export default function ConfirmacaoInteresses({ navigation }) {
 
             {cursosSugeridos.length > 0 && (
               <View style={styles.cursosSection}>
-                <Text style={styles.sectionTitle}>Cursos sugeridos para você:</Text>
+                <Text style={styles.sectionTitle}>{t('cursosSugeridos')}</Text>
                 {cursosSugeridos.map((curso) => (
                   <View key={curso.id} style={styles.cursoCard}>
                     <Text style={styles.cursoIcon}>{curso.icone}</Text>
@@ -130,7 +118,7 @@ export default function ConfirmacaoInteresses({ navigation }) {
             )}
 
             <TouchableOpacity style={styles.confirmarButton} onPress={handleConfirmar}>
-              <Text style={styles.confirmarButtonText}>Confirmar e Continuar</Text>
+              <Text style={styles.confirmarButtonText}>{t('confirmarContinuar')}</Text>
             </TouchableOpacity>
           </BlurView>
         </View>

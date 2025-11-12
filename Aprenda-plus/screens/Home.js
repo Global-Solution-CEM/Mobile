@@ -8,8 +8,10 @@ import HeaderBack from '../components/HeaderBack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
 import { getCursosSugeridos } from '../services/CursosService';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Home({ navigation }) {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [cursosSugeridos, setCursosSugeridos] = useState([]);
 
@@ -44,7 +46,7 @@ export default function Home({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Cursos sugeridos para você</Text>
+            <Text style={styles.title}>{t('cursosSugeridosParaVoce')}</Text>
 
             {cursosSugeridos.length > 0 ? (
               <View style={styles.cursosSection}>
@@ -66,7 +68,7 @@ export default function Home({ navigation }) {
             ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateText}>
-                  Nenhum curso sugerido no momento.
+                  {t('nenhumCursoSugerido')}
                 </Text>
               </View>
             )}

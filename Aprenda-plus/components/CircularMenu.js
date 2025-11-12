@@ -2,22 +2,15 @@ import { useState, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Animated, Text, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { useI18n } from '../i18n/I18nContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CIRCLE_RADIUS = 120;
 const ITEM_SIZE = 60;
 const BUTTON_POSITION = { top: 50, right: 30 };
 
-const MENU_ITEMS = [
-  { id: 'home', label: 'Início', icon: 'home', route: 'Home' },
-  { id: 'cursos', label: 'Meus Cursos', icon: 'book', route: 'MeusCursos' },
-  { id: 'trilhas', label: 'Trilhas', icon: 'map', route: 'Trilhas' },
-  { id: 'desafios', label: 'Desafios', icon: 'trophy', route: 'Desafios' },
-  { id: 'configuracoes', label: 'Configurações', icon: 'settings', route: 'Configuracoes' },
-  { id: 'perfil', label: 'Perfil', icon: 'person', route: 'Perfil' },
-];
-
 export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
+  const { t } = useI18n();
   const [rotation, setRotation] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const rotationAnim = useRef(new Animated.Value(0)).current;
@@ -26,6 +19,15 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
   const tutorialOpacity = useRef(new Animated.Value(0)).current;
   const lastAngle = useRef(0);
   const isRotating = useRef(false);
+
+  const MENU_ITEMS = [
+    { id: 'home', label: t('inicio'), icon: 'home', route: 'Home' },
+    { id: 'cursos', label: t('meusCursos'), icon: 'book', route: 'MeusCursos' },
+    { id: 'trilhas', label: t('trilhas'), icon: 'map', route: 'Trilhas' },
+    { id: 'desafios', label: t('desafios'), icon: 'trophy', route: 'Desafios' },
+    { id: 'configuracoes', label: t('configuracoes'), icon: 'settings', route: 'Configuracoes' },
+    { id: 'perfil', label: t('perfil'), icon: 'person', route: 'Perfil' },
+  ];
 
   // Encontrar índice da rota atual
   const getCurrentIndex = () => {
@@ -229,9 +231,9 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
                 <Ionicons name="arrow-forward" size={20} color="#007AFF" />
               </View>
             </Animated.View>
-            <View style={styles.tutorialTextContainer}>
-              <Text style={styles.tutorialText}>Arraste para rotacionar</Text>
-            </View>
+                    <View style={styles.tutorialTextContainer}>
+                      <Text style={styles.tutorialText}>{t('arrasteParaRotacionar')}</Text>
+                    </View>
           </Animated.View>
         )}
 

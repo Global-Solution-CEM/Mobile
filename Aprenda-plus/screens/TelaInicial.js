@@ -2,8 +2,10 @@ import { StyleSheet, Text, View, TouchableOpacity, Animated } from 'react-native
 import { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import BackgroundImage from '../components/BackgroundImage';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function TelaInicial({ navigation }) {
+  const { t } = useI18n();
   // Animações para os textos
   const welcomeOpacity = useRef(new Animated.Value(0)).current;
   const welcomeTranslateY = useRef(new Animated.Value(30)).current;
@@ -108,7 +110,7 @@ export default function TelaInicial({ navigation }) {
               },
             ]}
           >
-            Bem Vindo ao
+            {t('bemVindo')}
           </Animated.Text>
           
           <Animated.Text 
@@ -132,7 +134,7 @@ export default function TelaInicial({ navigation }) {
               },
             ]}
           >
-            Você aprende, evolui e conquista novas oportunidades tudo em um só lugar.
+            {t('descricaoInicial')}
           </Animated.Text>
           
           <Animated.View
@@ -149,7 +151,7 @@ export default function TelaInicial({ navigation }) {
               onPress={handleComecar}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>Começar</Text>
+              <Text style={styles.buttonText}>{t('entrar')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>

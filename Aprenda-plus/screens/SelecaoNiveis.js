@@ -4,29 +4,13 @@ import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
-
-const AREAS_INTERESSE = [
-  { id: 'ia', name: 'Inteligência Artificial', icon: '🤖' },
-  { id: 'dados', name: 'Ciência de Dados', icon: '📊' },
-  { id: 'sustentabilidade', name: 'Sustentabilidade', icon: '🌱' },
-  { id: 'programacao', name: 'Programação', icon: '💻' },
-  { id: 'design', name: 'Design', icon: '🎨' },
-  { id: 'marketing', name: 'Marketing Digital', icon: '📱' },
-  { id: 'gestao', name: 'Gestão', icon: '📈' },
-  { id: 'vendas', name: 'Vendas', icon: '💼' },
-  { id: 'rh', name: 'Recursos Humanos', icon: '👥' },
-  { id: 'financas', name: 'Finanças', icon: '💰' },
-  { id: 'saude', name: 'Saúde', icon: '🏥' },
-  { id: 'educacao', name: 'Educação', icon: '📚' },
-];
-
-const NIVEIS = [
-  { id: 'Iniciante', name: 'Iniciante', descricao: 'Estou começando', icon: '🌱' },
-  { id: 'Intermediário', name: 'Intermediário', descricao: 'Tenho alguma experiência', icon: '📚' },
-  { id: 'Avançado', name: 'Avançado', descricao: 'Tenho bastante experiência', icon: '🚀' },
-];
+import { useI18n } from '../i18n/I18nContext';
+import { getAreasInteresse, getNiveis } from '../i18n/helpers';
 
 export default function SelecaoNiveis({ route, navigation }) {
+  const { t } = useI18n();
+  const AREAS_INTERESSE = getAreasInteresse(t);
+  const NIVEIS = getNiveis(t);
   const { areasSelecionadas } = route.params || { areasSelecionadas: [] };
   const [niveisPorArea, setNiveisPorArea] = useState({});
   const { saveUserPreferences } = useAuth();
@@ -49,7 +33,7 @@ export default function SelecaoNiveis({ route, navigation }) {
     );
 
     if (!todasAreasComNivel) {
-      Alert.alert('Atenção', 'Selecione o nível de conhecimento para todas as áreas');
+      Alert.alert(t('preenchaTodosCampos'), t('selecioneNivelTodasAreas'));
       return;
     }
 
@@ -64,7 +48,7 @@ export default function SelecaoNiveis({ route, navigation }) {
     if (result.success) {
       navigation.navigate('ConfirmacaoInteresses');
     } else {
-      Alert.alert('Erro', 'Não foi possível salvar suas preferências. Tente novamente.');
+      Alert.alert(t('preenchaTodosCampos'), t('erroSalvarPreferencias'));
     }
   };
 
@@ -78,10 +62,10 @@ export default function SelecaoNiveis({ route, navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Qual seu nível de conhecimento?</Text>
+            <Text style={styles.title}>{t('selecioneNiveis')}</Text>
             
             <Text style={styles.description}>
-              Para cada área selecionada, informe seu nível atual de conhecimento. Isso nos ajudará a sugerir cursos adequados para você!
+              {t('selecioneNiveisDescricao')}
             </Text>
 
             {areasSelecionadas.map((areaId) => {
@@ -144,7 +128,7 @@ export default function SelecaoNiveis({ route, navigation }) {
                 areasSelecionadas.length !== Object.keys(niveisPorArea).length
               }
             >
-              <Text style={styles.finalizarButtonText}>Finalizar</Text>
+              <Text style={styles.finalizarButtonText}>{t('finalizar')}</Text>
             </TouchableOpacity>
           </BlurView>
         </View>

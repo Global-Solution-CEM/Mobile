@@ -5,8 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Login({ navigation }) {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,7 +17,7 @@ export default function Login({ navigation }) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Atenção', 'Preencha todos os campos');
+      Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos'));
       return;
     }
 
@@ -41,12 +43,12 @@ export default function Login({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Login</Text>
+            <Text style={styles.title}>{t('login')}</Text>
             
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
-                placeholder="Email"
+                placeholder={t('email')}
                 placeholderTextColor="#B0B0B0"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -58,7 +60,7 @@ export default function Login({ navigation }) {
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
-                  placeholder="Senha"
+                  placeholder={t('senha')}
                   placeholderTextColor="#B0B0B0"
                   secureTextEntry={!showPassword}
                   value={password}
@@ -86,20 +88,20 @@ export default function Login({ navigation }) {
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.loginButtonText}>Entrar</Text>
+                  <Text style={styles.loginButtonText}>{t('entrar')}</Text>
                 )}
               </TouchableOpacity>
             </View>
             
             <View style={styles.footer}>
               <TouchableOpacity onPress={() => navigation.navigate('EsqueceuSenha')}>
-                <Text style={styles.footerText}>Esqueceu a senha?</Text>
+                <Text style={styles.footerText}>{t('esqueceuSenha')}</Text>
               </TouchableOpacity>
               
               <View style={styles.cadastroContainer}>
-                <Text style={styles.cadastroText}>Não possui uma conta? </Text>
+                <Text style={styles.cadastroText}>{t('naoTemConta')} </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
-                  <Text style={styles.cadastroLink}>Cadastre-se</Text>
+                  <Text style={styles.cadastroLink}>{t('cadastreSe')}</Text>
                 </TouchableOpacity>
               </View>
             </View>

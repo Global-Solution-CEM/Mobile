@@ -4,23 +4,12 @@ import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
-
-const AREAS_INTERESSE = [
-  { id: 'ia', name: 'Inteligência Artificial', icon: '🤖' },
-  { id: 'dados', name: 'Ciência de Dados', icon: '📊' },
-  { id: 'sustentabilidade', name: 'Sustentabilidade', icon: '🌱' },
-  { id: 'programacao', name: 'Programação', icon: '💻' },
-  { id: 'design', name: 'Design', icon: '🎨' },
-  { id: 'marketing', name: 'Marketing Digital', icon: '📱' },
-  { id: 'gestao', name: 'Gestão', icon: '📈' },
-  { id: 'vendas', name: 'Vendas', icon: '💼' },
-  { id: 'rh', name: 'Recursos Humanos', icon: '👥' },
-  { id: 'financas', name: 'Finanças', icon: '💰' },
-  { id: 'saude', name: 'Saúde', icon: '🏥' },
-  { id: 'educacao', name: 'Educação', icon: '📚' },
-];
+import { useI18n } from '../i18n/I18nContext';
+import { getAreasInteresse } from '../i18n/helpers';
 
 export default function SelecaoAreas({ navigation }) {
+  const { t } = useI18n();
+  const AREAS_INTERESSE = getAreasInteresse(t);
   const [areasSelecionadas, setAreasSelecionadas] = useState([]);
   const { saveUserPreferences } = useAuth();
 
@@ -31,7 +20,7 @@ export default function SelecaoAreas({ navigation }) {
       } else {
         // Limitar a 3 áreas
         if (prev.length >= 3) {
-          Alert.alert('Atenção', 'Você pode selecionar no máximo 3 áreas de interesse');
+          Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos')); // TODO: adicionar tradução específica
           return prev;
         }
         return [...prev, areaId];
@@ -41,12 +30,12 @@ export default function SelecaoAreas({ navigation }) {
 
   const handleContinuar = async () => {
     if (areasSelecionadas.length === 0) {
-      Alert.alert('Atenção', 'Selecione pelo menos uma área de interesse');
+      Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos')); // TODO: adicionar tradução específica
       return;
     }
 
     if (areasSelecionadas.length > 3) {
-      Alert.alert('Atenção', 'Selecione no máximo 3 áreas de interesse');
+      Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos')); // TODO: adicionar tradução específica
       return;
     }
 
@@ -64,10 +53,10 @@ export default function SelecaoAreas({ navigation }) {
       >
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
-            <Text style={styles.title}>Selecione suas áreas de interesse</Text>
+            <Text style={styles.title}>{t('selecioneAreas')}</Text>
             
             <Text style={styles.description}>
-              Escolha até 3 áreas que mais te interessam. Isso nos ajudará a sugerir cursos personalizados para você!
+              {t('selecioneAreasDescricao')}
             </Text>
 
             <View style={styles.areasContainer}>
@@ -106,7 +95,7 @@ export default function SelecaoAreas({ navigation }) {
               disabled={areasSelecionadas.length === 0}
             >
               <Text style={styles.continueButtonText}>
-                Continuar ({areasSelecionadas.length} selecionada{areasSelecionadas.length !== 1 ? 's' : ''})
+                {t('continuar')} ({areasSelecionadas.length})
               </Text>
             </TouchableOpacity>
           </BlurView>

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { I18nProvider } from './i18n/I18nContext';
 import TelaInicial from './screens/TelaInicial';
 import Login from './screens/Login';
 import EsqueceuSenha from './screens/EsqueceuSenha';
@@ -194,9 +195,11 @@ const fadeTransition = ({ current }) => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppNavigator />
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </I18nProvider>
   );
 }
 

@@ -5,8 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Cadastro({ navigation }) {
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,12 +49,12 @@ export default function Cadastro({ navigation }) {
         >
           <View style={styles.content}>
             <BlurView intensity={80} tint="dark" style={styles.card}>
-              <Text style={styles.title}>Cadastre-se</Text>
+              <Text style={styles.title}>{t('cadastreSeTitulo')}</Text>
               
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Nome completo"
+                  placeholder={t('nomeCompleto')}
                   placeholderTextColor="#B0B0B0"
                   autoCapitalize="words"
                   value={name}
@@ -62,7 +64,7 @@ export default function Cadastro({ navigation }) {
                 
                 <TextInput
                   style={styles.input}
-                  placeholder="Email"
+                  placeholder={t('email')}
                   placeholderTextColor="#B0B0B0"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -74,7 +76,7 @@ export default function Cadastro({ navigation }) {
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={styles.passwordInput}
-                    placeholder="Senha"
+                    placeholder={t('senha')}
                     placeholderTextColor="#B0B0B0"
                     secureTextEntry={!showPassword}
                     value={password}
@@ -97,7 +99,7 @@ export default function Cadastro({ navigation }) {
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={styles.passwordInput}
-                    placeholder="Confirmar senha"
+                    placeholder={t('confirmarSenha')}
                     placeholderTextColor="#B0B0B0"
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
@@ -125,16 +127,16 @@ export default function Cadastro({ navigation }) {
                   {loading ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Cadastrar</Text>
+                    <Text style={styles.buttonText}>{t('cadastrar')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
               
               <View style={styles.footer}>
                 <View style={styles.loginContainer}>
-                  <Text style={styles.loginText}>Já possui uma conta? </Text>
+                  <Text style={styles.loginText}>{t('jaTemConta')} </Text>
                   <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                    <Text style={styles.loginLink}>Faça login</Text>
+                    <Text style={styles.loginLink}>{t('fazerLogin')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

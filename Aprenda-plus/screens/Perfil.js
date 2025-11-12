@@ -8,8 +8,10 @@ import HeaderBack from '../components/HeaderBack';
 import CircularMenu from '../components/CircularMenu';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
+import { useI18n } from '../i18n/I18nContext';
 
 export default function Perfil({ navigation }) {
+  const { t } = useI18n();
   const { user, updateProfile, deleteAccount, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,17 +47,17 @@ export default function Perfil({ navigation }) {
 
   const handleSave = async () => {
     if (!formData.name || !formData.email) {
-      Alert.alert('Atenção', 'Preencha nome e email');
+      Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos')); // TODO: adicionar tradução específica
       return;
     }
 
     if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      Alert.alert('Atenção', 'As novas senhas não coincidem');
+      Alert.alert(t('preenchaTodosCampos'), t('senhasNaoCoincidem'));
       return;
     }
 
     if (formData.newPassword && formData.newPassword.length < 6) {
-      Alert.alert('Atenção', 'A nova senha deve ter pelo menos 6 caracteres');
+      Alert.alert(t('preenchaTodosCampos'), t('senhaMinima'));
       return;
     }
 
@@ -68,7 +70,7 @@ export default function Perfil({ navigation }) {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Sucesso', result.message);
+      Alert.alert(t('perfilAtualizado'), result.message);
       setIsEditing(false);
       setFormData(prev => ({
         ...prev,
@@ -77,21 +79,21 @@ export default function Perfil({ navigation }) {
         confirmPassword: '',
       }));
     } else {
-      Alert.alert('Erro', result.message);
+      Alert.alert(t('preenchaTodosCampos'), result.message);
     }
   };
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Excluir Conta',
-      'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.',
+      t('excluirConta'),
+      t('excluirContaConfirmacao'),
       [
         {
-          text: 'Cancelar',
+          text: t('cancelar'),
           style: 'cancel',
         },
         {
-          text: 'Excluir',
+          text: t('excluirConta'),
           style: 'destructive',
           onPress: async () => {
             setLoading(true);
@@ -112,15 +114,15 @@ export default function Perfil({ navigation }) {
 
   const handleLogout = () => {
     Alert.alert(
-      'Sair',
-      'Tem certeza que deseja sair?',
+      t('sair'),
+      t('sairConfirmacao'),
       [
         {
-          text: 'Cancelar',
+          text: t('cancelar'),
           style: 'cancel',
         },
         {
-          text: 'Sair',
+          text: t('sair'),
           onPress: async () => {
             await logout();
             // Navegação será feita automaticamente pelo App.js
@@ -155,27 +157,27 @@ export default function Perfil({ navigation }) {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Informações Pessoais</Text>
+              <Text style={styles.sectionTitle}>{t('informacoesPessoais')}</Text>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nome</Text>
+                <Text style={styles.label}>{t('nome')}</Text>
                 <TextInput
                   style={[styles.input, !isEditing && styles.inputDisabled]}
                   value={formData.name}
                   onChangeText={(value) => handleInputChange('name', value)}
-                  placeholder="Nome completo"
+                  placeholder={t('nomeCompleto')}
                   placeholderTextColor="#B0B0B0"
                   editable={isEditing}
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email</Text>
+                <Text style={styles.label}>{t('email')}</Text>
                 <TextInput
                   style={[styles.input, !isEditing && styles.inputDisabled]}
                   value={formData.email}
                   onChangeText={(value) => handleInputChange('email', value)}
-                  placeholder="Email"
+                  placeholder={t('email')}
                   placeholderTextColor="#B0B0B0"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -186,13 +188,13 @@ export default function Perfil({ navigation }) {
               {isEditing && (
                 <>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Nova Senha (opcional)</Text>
+                    <Text style={styles.label}>{t('novaSenha')}</Text>
                     <View style={styles.passwordContainer}>
                       <TextInput
                         style={styles.passwordInput}
                         value={formData.newPassword}
                         onChangeText={(value) => handleInputChange('newPassword', value)}
-                        placeholder="Nova senha"
+                        placeholder={t('senha')}
                         placeholderTextColor="#B0B0B0"
                         secureTextEntry={!showNewPassword}
                       />
@@ -211,12 +213,12 @@ export default function Perfil({ navigation }) {
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Confirmar Nova Senha</Text>
+                    <Text style={styles.label}>{t('confirmarNovaSenha')}</Text>
                     <TextInput
                       style={styles.input}
                       value={formData.confirmPassword}
                       onChangeText={(value) => handleInputChange('confirmPassword', value)}
-                      placeholder="Confirmar nova senha"
+                      placeholder={t('confirmarSenha')}
                       placeholderTextColor="#B0B0B0"
                       secureTextEntry={!showPassword}
                     />
@@ -236,7 +238,7 @@ export default function Perfil({ navigation }) {
                     {loading ? (
                       <ActivityIndicator color="#FFFFFF" />
                     ) : (
-                      <Text style={styles.buttonText}>Salvar Alterações</Text>
+                      <Text style={styles.buttonText}>{t('salvarAlteracoes')}</Text>
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -253,7 +255,7 @@ export default function Perfil({ navigation }) {
                     }}
                     disabled={loading}
                   >
-                    <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancelar</Text>
+                    <Text style={[styles.buttonText, styles.cancelButtonText]}>{t('cancelar')}</Text>
                   </TouchableOpacity>
                 </>
               ) : (
@@ -263,21 +265,21 @@ export default function Perfil({ navigation }) {
                     onPress={() => setIsEditing(true)}
                   >
                     <Ionicons name="create-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Editar Perfil</Text>
+                    <Text style={styles.buttonText}>{t('editarPerfil')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.logoutButton]}
                     onPress={handleLogout}
                   >
                     <Ionicons name="log-out-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Sair</Text>
+                    <Text style={styles.buttonText}>{t('sair')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.deleteButton]}
                     onPress={handleDeleteAccount}
                   >
                     <Ionicons name="trash-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>Excluir Conta</Text>
+                    <Text style={styles.buttonText}>{t('excluirConta')}</Text>
                   </TouchableOpacity>
                 </>
               )}
