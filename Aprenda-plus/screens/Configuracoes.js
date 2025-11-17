@@ -10,7 +10,6 @@ import { useI18n } from '../i18n/I18nContext';
 
 export default function Configuracoes({ navigation }) {
   const { t, language, changeLanguage } = useI18n();
-  const [modoEscuro, setModoEscuro] = useState(true);
   const [notificacoes, setNotificacoes] = useState(true);
   
   const IDIOMAS = [
@@ -36,26 +35,6 @@ export default function Configuracoes({ navigation }) {
         <View style={styles.content}>
           <BlurView intensity={80} tint="dark" style={styles.card}>
             <Text style={styles.title}>{t('configuracoesTitulo')}</Text>
-
-            {/* Modo Escuro/Claro */}
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
-                <Ionicons name="moon" size={24} color="#007AFF" style={styles.settingIcon} />
-                <View style={styles.settingTextContainer}>
-                  <Text style={styles.settingLabel}>{t('modoEscuro')}</Text>
-                  <Text style={styles.settingDescription}>
-                    {t('modoEscuroDesc')}
-                  </Text>
-                </View>
-              </View>
-              <Switch
-                value={modoEscuro}
-                onValueChange={setModoEscuro}
-                trackColor={{ false: '#767577', true: '#007AFF' }}
-                thumbColor={modoEscuro ? '#FFFFFF' : '#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
-              />
-            </View>
 
             {/* Idioma */}
             <View style={styles.settingSection}>
