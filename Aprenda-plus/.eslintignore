@@ -1,0 +1,12 @@
+# Dependências
+node_modules/
+
+# Build
+.expo/
+dist/
+build/
+
+# Configurações
+*.config.js
+coverage/
+

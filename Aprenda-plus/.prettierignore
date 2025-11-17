@@ -1,0 +1,21 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Build
+.expo/
+dist/
+build/
+
+# Assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+
+# Configurações
+*.log
+.DS_Store
+
