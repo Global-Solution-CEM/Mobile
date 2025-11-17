@@ -191,6 +191,11 @@ export default {
   iniciarDesafio: 'Iniciar desafio',
   desafioJaConcluido: 'Desafio já concluído',
   voltarParaTelaAnterior: 'Voltar para a tela anterior',
+  digiteSeuNomeCompleto: 'Digite seu nome completo',
+  confirmeSuaSenha: 'Confirme sua senha',
+  botaoCadastrar: 'Botão cadastrar',
+  processandoCadastro: 'Processando cadastro, aguarde',
+  pressioneParaCadastrar: 'Pressione para cadastrar',
   
   // Mensagens
   preenchaTodosCampos: 'Preencha todos os campos',

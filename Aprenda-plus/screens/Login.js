@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../i18n/I18nContext';
+import { getValidationError } from '../utils/validation';
 
 export default function Login({ navigation }) {
   const { t } = useI18n();
@@ -13,23 +14,44 @@ export default function Login({ navigation }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert(t('preenchaTodosCampos'), t('preenchaTodosCampos'));
+    // Validar campos
+    const emailError = getValidationError('email', email);
+    const passwordError = getValidationError('password', password);
+    
+    if (emailError || passwordError) {
+      setErrors({ email: emailError, password: passwordError });
+      setTouched({ email: true, password: true });
+      Alert.alert(t('preenchaTodosCampos'), emailError || passwordError);
       return;
     }
 
     setLoading(true);
-    const result = await login(email, password);
+    setErrors({});
+    const result = await login(email.trim().toLowerCase(), password);
     setLoading(false);
 
     if (result.success) {
       // Navegação será feita automaticamente pelo App.js quando isAuthenticated mudar
-      Alert.alert('Sucesso', result.message);
+      // Não mostrar alerta de sucesso para melhor UX
     } else {
       Alert.alert('Erro', result.message);
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched({ ...touched, [field]: true });
+    const error = getValidationError(field, { email, password }[field]);
+    if (error) {
+      setErrors({ ...errors, [field]: error });
+    } else {
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
     }
   };
 
@@ -47,28 +69,57 @@ export default function Login({ navigation }) {
             
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, touched.email && errors.email && styles.inputError]}
                 placeholder={t('email')}
                 placeholderTextColor="#B0B0B0"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (touched.email) {
+                    const error = getValidationError('email', text);
+                    if (error) {
+                      setErrors({ ...errors, email: error });
+                    } else {
+                      const newErrors = { ...errors };
+                      delete newErrors.email;
+                      setErrors(newErrors);
+                    }
+                  }
+                }}
+                onBlur={() => handleBlur('email')}
                 editable={!loading}
                 accessible={true}
                 accessibilityLabel={t('campoEmail')}
                 accessibilityHint={t('digiteSeuEnderecoDeEmail')}
                 accessibilityRole="textbox"
               />
+              {touched.email && errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
               
               <View style={styles.passwordContainer}>
                 <TextInput
-                  style={styles.passwordInput}
+                  style={[styles.passwordInput, touched.password && errors.password && styles.inputError]}
                   placeholder={t('senha')}
                   placeholderTextColor="#B0B0B0"
                   secureTextEntry={!showPassword}
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (touched.password) {
+                      const error = getValidationError('password', text);
+                      if (error) {
+                        setErrors({ ...errors, password: error });
+                      } else {
+                        const newErrors = { ...errors };
+                        delete newErrors.password;
+                        setErrors(newErrors);
+                      }
+                    }
+                  }}
+                  onBlur={() => handleBlur('password')}
                   editable={!loading}
                   accessible={true}
                   accessibilityLabel={t('campoSenha')}
@@ -89,10 +140,13 @@ export default function Login({ navigation }) {
                     size={20}
                     color="#B0B0B0"
                   />
-                </TouchableOpacity>
+                  </TouchableOpacity>
               </View>
+              {touched.password && errors.password && (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              )}
               
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.loginButton, loading && styles.loginButtonDisabled]}
                 onPress={handleLogin}
                 disabled={loading}
@@ -245,6 +299,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  inputError: {
+    borderColor: '#FF3B30',
+    borderWidth: 2,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: -12,
+    marginBottom: 12,
+    marginLeft: 4,
   },
 });
 

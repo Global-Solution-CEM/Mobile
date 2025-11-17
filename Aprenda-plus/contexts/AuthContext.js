@@ -1,5 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { AuthStorage } from '../services/AuthStorage';
+// TODO: Quando API Java estiver pronta, descomentar e usar AuthService
+// import { AuthService } from '../services/AuthService';
 
 const AuthContext = createContext({});
 
@@ -325,13 +327,26 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Limpar todos os dados de autenticação
       await AuthStorage.removeUser();
+      
+      // Limpar estado
       setUser(null);
       setIsAuthenticated(false);
       setHasCompletedOnboarding(false);
+      
+      // TODO: Quando API Java estiver pronta, chamar logout na API também
+      // if (USE_API) {
+      //   await AuthService.logout();
+      // }
+      
       return { success: true };
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+      // Mesmo com erro, limpar estado local para garantir logout
+      setUser(null);
+      setIsAuthenticated(false);
+      setHasCompletedOnboarding(false);
       return { success: false };
     }
   };
