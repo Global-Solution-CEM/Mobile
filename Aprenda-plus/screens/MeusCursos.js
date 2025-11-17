@@ -66,6 +66,10 @@ export default function MeusCursos({ navigation }) {
                     key={curso.id}
                     style={styles.cursoCard}
                     activeOpacity={0.7}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${curso.titulo}, ${t('progresso')}: ${curso.progresso}%`}
+                    accessibilityHint={t('abrirCurso')}
                   >
                     <Text style={styles.cursoIcon}>{curso.icone}</Text>
                     <View style={styles.cursoInfo}>
@@ -97,6 +101,10 @@ export default function MeusCursos({ navigation }) {
                     key={curso.id}
                     style={styles.cursoCard}
                     activeOpacity={0.7}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${curso.titulo}, ${t('concluido')}`}
+                    accessibilityHint={t('verDetalhesDoCurso')}
                   >
                     <Text style={styles.cursoIcon}>{curso.icone}</Text>
                     <View style={styles.cursoInfo}>

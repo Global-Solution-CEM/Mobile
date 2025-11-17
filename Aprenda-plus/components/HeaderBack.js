@@ -17,6 +17,10 @@ export default function HeaderBack({ navigation, title }) {
         style={styles.backButton}
         onPress={handleGoBack}
         activeOpacity={0.7}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={t('voltar')}
+        accessibilityHint={t('voltarParaTelaAnterior')}
       >
         <Ionicons name="arrow-back" size={24} color="#E0EEFF" />
         <Text style={styles.backText}>{displayTitle}</Text>

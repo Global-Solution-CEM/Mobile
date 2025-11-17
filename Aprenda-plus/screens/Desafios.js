@@ -114,6 +114,11 @@ export default function Desafios({ navigation }) {
                       activeOpacity={0.7}
                       onPress={() => handleChallengePress(desafio)}
                       disabled={desafio.status === 'concluido'}
+                      accessible={true}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${desafio.titulo}, ${desafio.pontos} ${t('pontos')}, ${getStatusText(desafio.status)}`}
+                      accessibilityHint={desafio.status === 'concluido' ? t('desafioJaConcluido') : t('iniciarDesafio')}
+                      accessibilityState={{ disabled: desafio.status === 'concluido' }}
                     >
                       <View style={styles.desafioHeader}>
                         <Text style={styles.desafioIcon}>{desafio.icone}</Text>

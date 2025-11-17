@@ -150,6 +150,10 @@ export default function TelaInicial({ navigation }) {
               style={styles.button}
               onPress={handleComecar}
               activeOpacity={0.8}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('entrar')}
+              accessibilityHint={t('pressioneParaIrParaTelaDeLogin')}
             >
               <Text style={styles.buttonText}>{t('entrar')}</Text>
             </TouchableOpacity>

@@ -81,6 +81,8 @@ export default function Home({ navigation }) {
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        accessible={true}
+        accessibilityLabel={t('conteudoPrincipal')}
       >
         <View style={styles.content}>
           {/* Header com Saudação */}
@@ -120,6 +122,10 @@ export default function Home({ navigation }) {
               style={styles.statCard}
               onPress={() => navigation.navigate('MeusCursos')}
               activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('cursosEmAndamento')}: ${stats.cursosEmAndamento}`}
+              accessibilityHint={t('verMeusCursos')}
             >
               <View style={[styles.statIconContainer, { backgroundColor: 'rgba(0, 122, 255, 0.2)' }]}>
                 <Ionicons name="book" size={24} color="#007AFF" />
@@ -132,6 +138,10 @@ export default function Home({ navigation }) {
               style={styles.statCard}
               onPress={() => navigation.navigate('MeusCursos')}
               activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('cursosConcluidos')}: ${stats.cursosConcluidos}`}
+              accessibilityHint={t('verMeusCursos')}
             >
               <View style={[styles.statIconContainer, { backgroundColor: 'rgba(76, 175, 80, 0.2)' }]}>
                 <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
@@ -144,6 +154,10 @@ export default function Home({ navigation }) {
               style={styles.statCard}
               onPress={() => navigation.navigate('Desafios')}
               activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('desafios')}: ${stats.desafiosCompletos}`}
+              accessibilityHint={t('verDesafios')}
             >
               <View style={[styles.statIconContainer, { backgroundColor: 'rgba(166, 96, 219, 0.2)' }]}>
                 <Ionicons name="trophy" size={24} color="#A660DB" />
@@ -164,6 +178,10 @@ export default function Home({ navigation }) {
                 style={styles.nextCourseContent}
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('MeusCursos')}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('continueAprendendo')}: ${proximoCurso.titulo}`}
+                accessibilityHint={t('abrirCurso')}
               >
                 <Text style={styles.nextCourseIcon}>{proximoCurso.icone}</Text>
                 <View style={styles.nextCourseInfo}>
@@ -210,6 +228,10 @@ export default function Home({ navigation }) {
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('Trilhas')}
               activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('explorarTrilhas')}
+              accessibilityHint={t('verTrilhasDeAprendizado')}
             >
               <Ionicons name="map" size={24} color="#E0EEFF" />
               <Text style={styles.quickActionText}>{t('explorarTrilhas')}</Text>
@@ -218,6 +240,10 @@ export default function Home({ navigation }) {
               style={styles.quickActionButton}
               onPress={() => navigation.navigate('Desafios')}
               activeOpacity={0.7}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={t('verDesafios')}
+              accessibilityHint={t('verDesafiosDisponiveis')}
             >
               <Ionicons name="trophy" size={24} color="#E0EEFF" />
               <Text style={styles.quickActionText}>{t('verDesafios')}</Text>

@@ -55,6 +55,10 @@ export default function Login({ navigation }) {
                 value={email}
                 onChangeText={setEmail}
                 editable={!loading}
+                accessible={true}
+                accessibilityLabel={t('campoEmail')}
+                accessibilityHint={t('digiteSeuEnderecoDeEmail')}
+                accessibilityRole="textbox"
               />
               
               <View style={styles.passwordContainer}>
@@ -66,11 +70,19 @@ export default function Login({ navigation }) {
                   value={password}
                   onChangeText={setPassword}
                   editable={!loading}
+                  accessible={true}
+                  accessibilityLabel={t('campoSenha')}
+                  accessibilityHint={t('digiteSuaSenha')}
+                  accessibilityRole="textbox"
                 />
                 <TouchableOpacity
                   style={styles.eyeIcon}
                   onPress={() => setShowPassword(!showPassword)}
                   activeOpacity={0.7}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? t('ocultarSenha') : t('mostrarSenha')}
+                  accessibilityHint={t('alternarVisibilidadeDaSenha')}
                 >
                   <Ionicons
                     name={showPassword ? 'eye-off' : 'eye'}
@@ -84,6 +96,11 @@ export default function Login({ navigation }) {
                 style={[styles.loginButton, loading && styles.loginButtonDisabled]}
                 onPress={handleLogin}
                 disabled={loading}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={t('botaoEntrar')}
+                accessibilityHint={loading ? t('fazendoLogin') : t('pressioneParaFazerLogin')}
+                accessibilityState={{ disabled: loading }}
               >
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -94,13 +111,25 @@ export default function Login({ navigation }) {
             </View>
             
             <View style={styles.footer}>
-              <TouchableOpacity onPress={() => navigation.navigate('EsqueceuSenha')}>
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('EsqueceuSenha')}
+                accessible={true}
+                accessibilityRole="link"
+                accessibilityLabel={t('esqueceuSenha')}
+                accessibilityHint={t('recuperarSenha')}
+              >
                 <Text style={styles.footerText}>{t('esqueceuSenha')}</Text>
               </TouchableOpacity>
               
               <View style={styles.cadastroContainer}>
                 <Text style={styles.cadastroText}>{t('naoTemConta')} </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('Cadastro')}
+                  accessible={true}
+                  accessibilityRole="link"
+                  accessibilityLabel={t('cadastreSe')}
+                  accessibilityHint={t('criarNovaConta')}
+                >
                   <Text style={styles.cadastroLink}>{t('cadastreSe')}</Text>
                 </TouchableOpacity>
               </View>

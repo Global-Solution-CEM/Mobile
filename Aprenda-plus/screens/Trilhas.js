@@ -71,6 +71,10 @@ export default function Trilhas({ navigation }) {
                     key={trilha.id}
                     style={styles.trilhaCard}
                     activeOpacity={0.7}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${trilha.titulo}, ${trilha.cursos} ${t('cursos')}, ${trilha.progresso > 0 ? `${trilha.progresso} ${t('concluidos')}` : t('naoIniciado')}`}
+                    accessibilityHint={t('abrirTrilha')}
                   >
                     <View style={[styles.trilhaHeader, { borderLeftColor: trilha.cor }]}>
                       <Text style={styles.trilhaIcon}>{trilha.icone}</Text>

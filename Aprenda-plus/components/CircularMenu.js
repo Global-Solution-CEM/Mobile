@@ -292,6 +292,11 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
                     onPress={() => handleItemPress(item)}
                     activeOpacity={0.7}
                     hitSlop={{ top: 30, bottom: 30, left: 30, right: 30 }}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={item.label}
+                    accessibilityHint={isActive ? t('voceEstaNestaTela') : t('navegarPara') + ' ' + item.label}
+                    accessibilityState={{ selected: isActive }}
                   >
                     <Ionicons
                       name={item.icon}
@@ -318,6 +323,11 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
           style={styles.mainButton}
           onPress={toggleMenu}
           activeOpacity={0.8}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={isOpen ? t('fecharMenu') : t('abrirMenu')}
+          accessibilityHint={isOpen ? t('fecharMenuNavegacao') : t('abrirMenuNavegacao')}
+          accessibilityState={{ expanded: isOpen }}
         >
           <BlurView intensity={80} tint="dark" style={styles.mainButtonBlur}>
             <Ionicons
