@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
@@ -15,6 +16,8 @@ export default function ConfirmacaoInteresses({ navigation }) {
   const { user, saveUserPreferences } = useAuth();
   const [areasInteresse, setAreasInteresse] = useState([]);
   const [cursosSugeridos, setCursosSugeridos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadAreasInteresse();
@@ -42,6 +45,9 @@ export default function ConfirmacaoInteresses({ navigation }) {
   const loadCursosSugeridos = async () => {
     try {
       if (user?.id && areasInteresse.length > 0) {
+        setLoading(true);
+        setError(null);
+        
         // Carregar recomendações usando a API
         const result = await CoursesService.getSuggestedCourses(
           user.id,
@@ -54,16 +60,35 @@ export default function ConfirmacaoInteresses({ navigation }) {
         
         if (result.success && result.data) {
           setCursosSugeridos(result.data);
+          
+          // Mostrar aviso se estiver usando fallback
+          if (result.fallback) {
+            setError({
+              type: 'warning',
+              message: 'Usando dados locais. Verifique a conexão com a API.',
+            });
+          }
         } else {
-          console.warn('Erro ao carregar recomendações:', result.error);
+          const errorMessage = result.error?.message || 'Erro ao carregar recomendações';
+          setError({
+            type: 'error',
+            message: errorMessage,
+          });
           setCursosSugeridos([]);
         }
       } else {
         setCursosSugeridos([]);
+        setError(null);
       }
     } catch (error) {
       console.error('Erro ao carregar cursos sugeridos:', error);
+      setError({
+        type: 'error',
+        message: 'Erro ao carregar recomendações. Tente novamente.',
+      });
       setCursosSugeridos([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,10 +101,34 @@ export default function ConfirmacaoInteresses({ navigation }) {
   };
 
   const handleConfirmar = async () => {
-    // Marcar onboarding como completo e navegar para Home
-    const result = await saveUserPreferences(areasInteresse, true);
-    if (result.success) {
-      navigation.navigate('Home');
+    try {
+      if (areasInteresse.length === 0) {
+        Alert.alert(
+          'Atenção',
+          'Por favor, selecione pelo menos uma área de interesse antes de continuar.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      
+      // Marcar onboarding como completo e navegar para Home
+      const result = await saveUserPreferences(areasInteresse, true);
+      if (result.success) {
+        navigation.navigate('Home');
+      } else {
+        Alert.alert(
+          'Erro',
+          'Não foi possível salvar suas preferências. Tente novamente.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao confirmar preferências:', error);
+      Alert.alert(
+        'Erro',
+        'Ocorreu um erro ao salvar suas preferências. Tente novamente.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -115,25 +164,57 @@ export default function ConfirmacaoInteresses({ navigation }) {
               </View>
             )}
 
-            {cursosSugeridos.length > 0 && (
-              <View style={styles.cursosSection}>
-                <Text style={styles.sectionTitle}>{t('cursosSugeridos')}</Text>
-                {cursosSugeridos.map((curso) => (
-                  <View key={curso.id} style={styles.cursoCard}>
-                    <Text style={styles.cursoIcon}>{curso.icone}</Text>
-                    <View style={styles.cursoInfo}>
-                      <Text style={styles.cursoTitulo}>{curso.titulo}</Text>
-                      <Text style={styles.cursoDescricao}>{curso.descricao}</Text>
-                      <View style={styles.cursoMeta}>
-                        <Text style={styles.cursoMetaText}>{curso.duracao}</Text>
-                        <Text style={styles.cursoMetaText}>•</Text>
-                        <Text style={styles.cursoMetaText}>{curso.nivel}</Text>
+            <View style={styles.cursosSection}>
+              <Text style={styles.sectionTitle}>{t('cursosSugeridos')}</Text>
+              
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007AFF" />
+                  <Text style={styles.loadingText}>Carregando recomendações...</Text>
+                </View>
+              ) : error && error.type === 'error' ? (
+                <View style={styles.errorContainer}>
+                  <Ionicons name="alert-circle" size={24} color="#FF3B30" />
+                  <Text style={styles.errorText}>{error.message}</Text>
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={loadCursosSugeridos}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="refresh" size={16} color="#007AFF" />
+                    <Text style={styles.retryButtonText}>Tentar novamente</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : cursosSugeridos.length > 0 ? (
+                <>
+                  {error && error.type === 'warning' && (
+                    <View style={styles.warningContainer}>
+                      <Ionicons name="information-circle" size={16} color="#FFA500" />
+                      <Text style={styles.warningText}>{error.message}</Text>
+                    </View>
+                  )}
+                  {cursosSugeridos.map((curso) => (
+                    <View key={curso.id} style={styles.cursoCard}>
+                      <Text style={styles.cursoIcon}>{curso.icone}</Text>
+                      <View style={styles.cursoInfo}>
+                        <Text style={styles.cursoTitulo}>{curso.titulo}</Text>
+                        <Text style={styles.cursoDescricao}>{curso.descricao}</Text>
+                        <View style={styles.cursoMeta}>
+                          <Text style={styles.cursoMetaText}>{curso.duracao}</Text>
+                          <Text style={styles.cursoMetaText}>•</Text>
+                          <Text style={styles.cursoMetaText}>{curso.nivel}</Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
-              </View>
-            )}
+                  ))}
+                </>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="book-outline" size={32} color="#B0B0B0" />
+                  <Text style={styles.emptyText}>Nenhum curso sugerido no momento</Text>
+                </View>
+              )}
+            </View>
 
             <TouchableOpacity style={styles.confirmarButton} onPress={handleConfirmar}>
               <Text style={styles.confirmarButtonText}>{t('confirmarContinuar')}</Text>
@@ -261,6 +342,71 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#B0B0B0',
+  },
+  errorContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 122, 255, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 122, 255, 0.3)',
+  },
+  retryButtonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  warningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 165, 0, 0.2)',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 165, 0, 0.3)',
+  },
+  warningText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: '#FFA500',
+    flex: 1,
+  },
+  emptyContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#B0B0B0',
+    textAlign: 'center',
   },
 });
 
