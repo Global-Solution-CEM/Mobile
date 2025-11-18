@@ -26,9 +26,15 @@ export const API_ENDPOINTS = {
     BASE: '/courses',
     BY_ID: (id) => `/courses/${id}`,
     BY_AREA: (area) => `/courses?area=${area}`,
-    SUGGESTED: (userId) => `/courses/suggested/${userId}`,
+    SUGGESTED: (userId) => `/api/courses/suggested/${userId}`, // Endpoint da API IOT
     ENROLL: (courseId) => `/courses/${courseId}/enroll`,
     PROGRESS: (courseId, userId) => `/courses/${courseId}/progress/${userId}`,
+  },
+  
+  // IA e Análise de Perfil
+  AI: {
+    ANALYZE_PROFILE: '/api/ai/analyze-profile',
+    GENERATE_EXPLANATION: '/api/ai/generate-explaination',
   },
   
   // Trilhas

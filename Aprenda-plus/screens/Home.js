@@ -9,7 +9,7 @@ import HeaderBack from '../components/HeaderBack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
 import { GameStorage } from '../services/GameStorage';
-import { getCursosSugeridos } from '../services/CursosService';
+import { CoursesService } from '../services/CoursesService';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Home({ navigation }) {
@@ -44,12 +44,27 @@ export default function Home({ navigation }) {
         const pontos = await GameStorage.getUserPoints(user.id);
         const completedChallenges = await GameStorage.getCompletedChallenges(user.id);
         
+        // Carregar recomendações de cursos usando a API
         const preferences = await AuthStorage.getUserPreferences(user.id);
         if (preferences?.areasInteresse) {
-          const cursos = getCursosSugeridos(preferences.areasInteresse);
-          setCursosSugeridos(cursos);
-          if (cursos.length > 0) {
-            setProximoCurso(cursos[0]);
+          const result = await CoursesService.getSuggestedCourses(
+            user.id,
+            preferences.areasInteresse,
+            {
+              name: user.name,
+              email: user.email,
+            }
+          );
+          
+          if (result.success && result.data) {
+            setCursosSugeridos(result.data);
+            if (result.data.length > 0) {
+              setProximoCurso(result.data[0]);
+            }
+          } else {
+            console.warn('Erro ao carregar recomendações:', result.error);
+            // Fallback: usar array vazio se houver erro
+            setCursosSugeridos([]);
           }
         }
 

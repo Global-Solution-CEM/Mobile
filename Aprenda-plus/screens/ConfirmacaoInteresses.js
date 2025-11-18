@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import BackgroundImage from '../components/BackgroundImage';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
-import { getCursosSugeridos } from '../services/CursosService';
+import { CoursesService } from '../services/CoursesService';
 import { useI18n } from '../i18n/I18nContext';
 import { getAreasNames } from '../i18n/helpers';
 
@@ -39,13 +39,31 @@ export default function ConfirmacaoInteresses({ navigation }) {
     }
   };
 
-  const loadCursosSugeridos = () => {
+  const loadCursosSugeridos = async () => {
     try {
-      // Passar o formato completo com níveis para filtrar cursos corretamente
-      const cursos = getCursosSugeridos(areasInteresse);
-      setCursosSugeridos(cursos);
+      if (user?.id && areasInteresse.length > 0) {
+        // Carregar recomendações usando a API
+        const result = await CoursesService.getSuggestedCourses(
+          user.id,
+          areasInteresse,
+          {
+            name: user.name,
+            email: user.email,
+          }
+        );
+        
+        if (result.success && result.data) {
+          setCursosSugeridos(result.data);
+        } else {
+          console.warn('Erro ao carregar recomendações:', result.error);
+          setCursosSugeridos([]);
+        }
+      } else {
+        setCursosSugeridos([]);
+      }
     } catch (error) {
       console.error('Erro ao carregar cursos sugeridos:', error);
+      setCursosSugeridos([]);
     }
   };
 

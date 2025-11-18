@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import API_CONFIG from './config';
 import { AuthStorage } from '../AuthStorage';
 
@@ -13,6 +14,16 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
+      // Validação crítica: endpoint de recomendações DEVE usar POST
+      if (config.url && config.url.includes('/suggested/')) {
+        if (config.method && config.method.toLowerCase() !== 'post') {
+          console.error('❌ ERRO CRÍTICO: Tentativa de usar', config.method, 'no endpoint de recomendações!');
+          console.error('❌ Endpoint:', config.url);
+          console.error('❌ Forçando método POST...');
+          config.method = 'post';
+        }
+      }
+      
       const token = await AuthStorage.getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -104,9 +115,51 @@ apiClient.interceptors.response.use(
     
     // Erro de rede (sem resposta do servidor)
     if (error.request) {
+      const baseURL = error.config?.baseURL || 'URL não disponível';
+      const url = error.config?.url || 'URL não disponível';
+      const fullURL = `${baseURL}${url}`;
+      
+      let message = 'Erro de conexão com a API.';
+      let details = '';
+      
+      if (__DEV__) {
+        // Detectar se é dispositivo físico (usa localhost mas não é web)
+        const isPhysicalDevice = baseURL.includes('localhost') && 
+                                 Platform.OS !== 'web' && 
+                                 !baseURL.includes('10.0.2.2');
+        
+        if (isPhysicalDevice) {
+          details = `\n\n⚠️ DISPOSITIVO FÍSICO DETECTADO!\n\n` +
+                   `Para conectar em dispositivo físico:\n` +
+                   `1. Descubra o IP da sua máquina:\n` +
+                   `   - Windows: execute "ipconfig" no terminal\n` +
+                   `   - Mac/Linux: execute "ifconfig" ou "ip addr"\n` +
+                   `2. Edite: Aprenda-plus/services/api/config.js\n` +
+                   `3. Configure: const DEVICE_IP = 'SEU_IP_AQUI';\n` +
+                   `4. Certifique-se de que o dispositivo e a máquina estão na mesma rede Wi-Fi\n` +
+                   `5. Verifique se o firewall permite conexões na porta 8000\n\n` +
+                   `URL tentada: ${fullURL}`;
+        } else {
+          details = `\n\nDetalhes:\n- URL: ${fullURL}\n- Verifique se a API está rodando em ${baseURL}\n- Para Android Emulator, use: http://10.0.2.2:8000\n- Para iOS/Web, use: http://localhost:8000\n- Para dispositivo físico, configure DEVICE_IP em config.js`;
+        }
+        message = `Erro de conexão com a API de recomendações.${details}`;
+      } else {
+        message = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      }
+      
+      console.error('Network Error:', {
+        message: error.message,
+        code: error.code,
+        url: fullURL,
+        baseURL,
+        config: error.config,
+      });
+      
       return Promise.reject({
         type: 'NETWORK_ERROR',
-        message: 'Erro de conexão. Verifique sua internet e tente novamente.',
+        message,
+        details,
+        url: fullURL,
         originalError: error,
       });
     }
@@ -143,6 +196,13 @@ export const create = async (endpoint, data) => {
 // READ - Obter recurso(s)
 export const read = async (endpoint, params = {}) => {
   try {
+    // BLOQUEAR: endpoint de recomendações NÃO pode usar GET
+    if (endpoint.includes('/suggested/')) {
+      const errorMsg = '❌ ERRO: Tentativa de usar GET no endpoint de recomendações! O endpoint /api/courses/suggested/{user_id} requer POST, não GET. Use CoursesService.getSuggestedCourses() ao invés de read().';
+      console.error(errorMsg);
+      console.error('❌ Endpoint:', endpoint);
+      throw new Error(errorMsg);
+    }
     const response = await apiClient.get(endpoint, { params });
     return {
       success: true,
@@ -223,17 +283,50 @@ export const remove = async (endpoint, id) => {
 // Método genérico para requisições customizadas
 export const request = async (method, endpoint, data = null, config = {}) => {
   try {
-    const response = await apiClient.request({
-      method,
-      url: endpoint,
-      data,
-      ...config,
-    });
+    // Validação CRÍTICA: endpoint de recomendações DEVE usar POST
+    if (endpoint.includes('/suggested/')) {
+      const methodUpper = method.toUpperCase();
+      if (methodUpper !== 'POST') {
+        console.error('❌ ERRO CRÍTICO: Endpoint de recomendações requer POST, mas recebeu:', method);
+        console.error('❌ Endpoint:', endpoint);
+        throw new Error(`Endpoint ${endpoint} requer método POST, mas recebeu ${method}`);
+      }
+      
+      // Log detalhado
+      console.log('📤 ========================================');
+      console.log('📤 FAZENDO REQUISIÇÃO POST PARA RECOMENDAÇÕES');
+      console.log('📤 Endpoint:', endpoint);
+      console.log('📤 Método:', methodUpper);
+      console.log('📤 Payload:', data ? JSON.stringify(data, null, 2) : 'sem dados');
+      console.log('📤 ========================================');
+    }
+    
+    // Garantir que o método está correto e em maiúsculas
+    const finalMethod = endpoint.includes('/suggested/') ? 'POST' : method.toUpperCase();
+    
+    // Usar apiClient.post diretamente para garantir POST
+    let response;
+    if (endpoint.includes('/suggested/')) {
+      // Para endpoint de recomendações, usar POST explicitamente
+      response = await apiClient.post(endpoint, data, config);
+    } else {
+      // Para outros endpoints, usar o método genérico
+      response = await apiClient.request({
+        method: finalMethod,
+        url: endpoint,
+        data,
+        ...config,
+      });
+    }
+    
     return {
       success: true,
       data: response,
     };
   } catch (error) {
+    if (endpoint.includes('/suggested/')) {
+      console.error('❌ ERRO na requisição de recomendações:', error);
+    }
     return {
       success: false,
       error,
