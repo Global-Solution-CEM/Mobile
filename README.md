@@ -12,8 +12,6 @@ O **Aprenda+** é uma plataforma mobile de aprendizado desenvolvida como soluç�
 
 ## 🎥 Vídeo de Apresentação
 
-<!-- Adicione o link do vídeo do YouTube aqui -->
-[![Vídeo de Apresentação](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
 
 **Link do vídeo:** [Adicione o link do YouTube aqui](https://www.youtube.com/watch?v=VIDEO_ID)
 
@@ -141,8 +139,8 @@ O **Aprenda+** é uma plataforma mobile que utiliza **Inteligência Artificial G
 
 1. Clone o repositório:
 ```bash
-git clone [URL_DO_REPOSITORIO]
-cd Mobile-13/Aprenda-plus
+git clone [https://github.com/Global-Solution-CEM/Mobile]
+cd Aprenda-plus
 ```
 
 2. Instale as dependências:
