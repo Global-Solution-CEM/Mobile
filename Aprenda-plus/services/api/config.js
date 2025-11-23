@@ -1,6 +1,7 @@
 // Configuração da API
 // Integrado com API de recomendações com IA (FastAPI/Python - IOT)
 // DETECÇÃO AUTOMÁTICA DE IP - Funciona direto sem configuração!
+// API Java do Aprenda+ está em arquivo separado: aprendaPlusApiClient.js
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
@@ -74,7 +75,8 @@ const getBaseURL = () => {
 };
 
 const API_CONFIG = {
-  // URL base da API de recomendações com IA (FastAPI/Python)
+  // URL base da API de recomendações com IA (FastAPI/Python - IOT)
+  // Esta API permanece intacta e é usada apenas para recomendações
   BASE_URL: getBaseURL(),
   
   // Timeout para requisições (em milissegundos)

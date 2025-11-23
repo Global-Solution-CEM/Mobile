@@ -1,15 +1,13 @@
 // Serviço de Autenticação
-// Preparado para integração futura com API Java
-// Atualmente usa AsyncStorage, mas pode ser facilmente migrado para API
+// Integrado com API Java do Aprenda+ (https://aprendaplus-web-0703.azurewebsites.net)
+// API de IoT permanece intacta e é usada apenas para recomendações
 
 import { AuthStorage } from './AuthStorage';
-import { create, read, update, remove } from './api/apiClient';
-import { API_ENDPOINTS } from './api/endpoints';
+import { login as aprendaPlusLogin, register as aprendaPlusRegister } from './api/aprendaPlusApiClient';
 import { handleApiError, handleApiSuccess } from './api/errorHandler';
 
-// Flag para alternar entre AsyncStorage e API
-// TODO: Alterar para true quando a API Java estiver pronta
-const USE_API = false;
+// Usar API externa do Aprenda+ para autenticação
+const USE_API = true;
 
 export const AuthService = {
   /**
@@ -21,16 +19,44 @@ export const AuthService = {
   async login(email, password) {
     if (USE_API) {
       try {
-        const result = await create(API_ENDPOINTS.AUTH.LOGIN, {
-          email,
-          password,
-        });
+        // Usar API Java do Aprenda+ para login
+        const result = await aprendaPlusLogin(email, password);
 
-        if (result.success) {
-          const { user, token } = result.data;
-          // Salvar token localmente
-          await AuthStorage.saveUser({ ...user, token });
-          return handleApiSuccess({ user, token }, 'Login realizado com sucesso!');
+        if (result.success && result.data) {
+          const responseData = result.data;
+          
+          // A API Java retorna: { success: true, message: "...", user: { id, nome, email, pontosTotais, onboardingConcluido } }
+          if (responseData.success && responseData.user) {
+            const userData = responseData.user;
+            
+            // Criar objeto de usuário padronizado
+            const user = {
+              id: userData.id,
+              email: userData.email,
+              name: userData.nome, // API retorna "nome", não "name"
+              pontosTotais: userData.pontosTotais || 0,
+              onboardingConcluido: userData.onboardingConcluido || false,
+            };
+            
+            // Gerar token local (a API não retorna token JWT)
+            const token = `token_${Date.now()}_${user.id}`;
+            
+            // Salvar dados do usuário localmente
+            await AuthStorage.saveUser({ ...user, token });
+            
+            return {
+              success: true,
+              message: responseData.message || 'Login realizado com sucesso!',
+              user: { ...user, token },
+              token,
+            };
+          } else {
+            // Se não retornou user, pode ser erro
+            return {
+              success: false,
+              message: responseData.message || 'Erro ao fazer login',
+            };
+          }
         } else {
           return handleApiError(result.error);
         }
@@ -92,14 +118,44 @@ export const AuthService = {
   async register(name, email, password) {
     if (USE_API) {
       try {
-        const result = await create(API_ENDPOINTS.AUTH.REGISTER, {
-          name,
-          email,
-          password,
-        });
+        // Usar API Java do Aprenda+ para cadastro
+        const result = await aprendaPlusRegister(name, email, password, password);
 
-        if (result.success) {
-          return handleApiSuccess(result.data, 'Cadastro realizado com sucesso!');
+        if (result.success && result.data) {
+          const responseData = result.data;
+          
+          // A API Java retorna: { sucesso: true, mensagem: "...", usuario: { id, nome, email, ... } }
+          if (responseData.sucesso && responseData.usuario) {
+            const userData = responseData.usuario;
+            const user = {
+              id: userData.id,
+              email: userData.email,
+              name: userData.nome, // API retorna "nome", não "name"
+              pontosTotais: userData.pontosTotais || 0,
+              onboardingConcluido: userData.onboardingConcluido || false,
+            };
+            
+            const token = `token_${Date.now()}_${user.id}`;
+            await AuthStorage.saveUser({ ...user, token });
+            
+            return {
+              success: true,
+              message: responseData.mensagem || 'Cadastro realizado com sucesso!',
+              user: { ...user, token },
+            };
+          } else if (responseData.sucesso) {
+            // Cadastro bem-sucedido mas sem dados do usuário
+            return {
+              success: true,
+              message: responseData.mensagem || 'Cadastro realizado com sucesso!',
+            };
+          } else {
+            // Erro no cadastro
+            return {
+              success: false,
+              message: responseData.mensagem || 'Erro ao realizar cadastro',
+            };
+          }
         } else {
           return handleApiError(result.error);
         }
@@ -149,17 +205,12 @@ export const AuthService = {
    * @returns {Promise<{success: boolean, message: string, user?: object}>}
    */
   async updateProfile(userId, updates) {
-    if (USE_API) {
+    // Nota: Atualização de perfil ainda não implementada na API externa
+    // Por enquanto, usar AsyncStorage local
+    if (false) { // Desabilitado até API estar pronta
       try {
-        const result = await update(API_ENDPOINTS.USERS.UPDATE_PROFILE(userId), userId, updates);
-
-        if (result.success) {
-          // Atualizar dados locais
-          await AuthStorage.saveUser(result.data);
-          return handleApiSuccess(result.data, 'Perfil atualizado com sucesso!');
-        } else {
-          return handleApiError(result.error);
-        }
+        // TODO: Implementar quando API Java tiver endpoint de atualização
+        return handleApiError({ message: 'Endpoint não implementado' });
       } catch (error) {
         return handleApiError(error);
       }
@@ -200,16 +251,12 @@ export const AuthService = {
    * @returns {Promise<{success: boolean, message: string}>}
    */
   async deleteAccount(userId) {
-    if (USE_API) {
+    // Nota: Exclusão de conta ainda não implementada na API externa
+    // Por enquanto, usar AsyncStorage local
+    if (false) { // Desabilitado até API estar pronta
       try {
-        const result = await remove(API_ENDPOINTS.USERS.DELETE_USER(userId), userId);
-
-        if (result.success) {
-          await AuthStorage.removeUser();
-          return handleApiSuccess(null, 'Conta excluída com sucesso!');
-        } else {
-          return handleApiError(result.error);
-        }
+        // TODO: Implementar quando API Java tiver endpoint de exclusão
+        return handleApiError({ message: 'Endpoint não implementado' });
       } catch (error) {
         return handleApiError(error);
       }
@@ -247,19 +294,12 @@ export const AuthService = {
    * @returns {Promise<{success: boolean, message: string}>}
    */
   async savePreferences(userId, preferences) {
-    if (USE_API) {
+    // Nota: Preferências ainda não implementadas na API externa
+    // Por enquanto, usar AsyncStorage local
+    if (false) { // Desabilitado até API estar pronta
       try {
-        const result = await update(
-          API_ENDPOINTS.USERS.PREFERENCES(userId),
-          userId,
-          preferences
-        );
-
-        if (result.success) {
-          return handleApiSuccess(result.data, 'Preferências salvas com sucesso!');
-        } else {
-          return handleApiError(result.error);
-        }
+        // TODO: Implementar quando API Java tiver endpoint de preferências
+        return handleApiError({ message: 'Endpoint não implementado' });
       } catch (error) {
         return handleApiError(error);
       }
