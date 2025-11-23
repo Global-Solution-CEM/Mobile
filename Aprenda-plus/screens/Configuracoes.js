@@ -91,6 +91,24 @@ export default function Configuracoes({ navigation }) {
                 ios_backgroundColor="#3e3e3e"
               />
             </View>
+
+            {/* Sobre o App */}
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => navigation.navigate('SobreApp')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingInfo}>
+                <Ionicons name="information-circle" size={24} color="#007AFF" style={styles.settingIcon} />
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingLabel}>Sobre o App</Text>
+                  <Text style={styles.settingDescription}>
+                    Informações sobre desenvolvedores e versão
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#B0B0B0" />
+            </TouchableOpacity>
           </BlurView>
         </View>
       </ScrollView>

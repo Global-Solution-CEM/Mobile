@@ -19,6 +19,7 @@ import DesafiosPorArea from './screens/DesafiosPorArea';
 import DesafioJogo from './screens/DesafioJogo';
 import Perfil from './screens/Perfil';
 import Configuracoes from './screens/Configuracoes';
+import SobreApp from './screens/SobreApp';
 
 const Stack = createNativeStackNavigator();
 
@@ -141,6 +142,7 @@ function AppNavigator() {
           <Stack.Screen name="DesafioJogo" component={DesafioJogo} />
           <Stack.Screen name="Perfil" component={Perfil} />
           <Stack.Screen name="Configuracoes" component={Configuracoes} />
+          <Stack.Screen name="SobreApp" component={SobreApp} />
         </>
       ) : (
         // Rotas não autenticadas

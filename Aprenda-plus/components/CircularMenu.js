@@ -25,6 +25,7 @@ export default function CircularMenu({ navigation, currentRoute = 'Home' }) {
     { id: 'cursos', label: t('meusCursos'), icon: 'book', route: 'MeusCursos' },
     { id: 'trilhas', label: t('trilhas'), icon: 'map', route: 'Trilhas' },
     { id: 'desafios', label: t('desafios'), icon: 'trophy', route: 'Desafios' },
+    { id: 'sobre', label: t('sobre'), icon: 'information-circle', route: 'SobreApp' },
     { id: 'configuracoes', label: t('configuracoes'), icon: 'settings', route: 'Configuracoes' },
     { id: 'perfil', label: t('perfil'), icon: 'person', route: 'Perfil' },
   ];

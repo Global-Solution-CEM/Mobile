@@ -7,6 +7,7 @@ export default {
   meusCursos: 'Mis Cursos',
   trilhas: 'Rutas',
   desafios: 'Desafíos',
+  sobre: 'Acerca de',
   configuracoes: 'Configuración',
   perfil: 'Perfil',
   
