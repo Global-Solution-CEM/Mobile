@@ -20,14 +20,22 @@
       }
     },
     "android": {
+      "package": "com.aprendaplus.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/Aprenda.png",
         "backgroundColor": "#0a0e27"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/Aprenda.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f2fde619-85f5-4eb1-a41e-65dfe142d761"
+      }
+    },
+    "owner": "murillosantanna"
   }
 }
