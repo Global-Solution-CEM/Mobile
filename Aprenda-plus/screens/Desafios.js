@@ -10,12 +10,15 @@ import { useI18n } from '../i18n/I18nContext';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
 import { GameStorage } from '../services/GameStorage';
-import { generateChallenges } from '../services/ChallengesService';
+import { getCurrentLevelForArea, generateChallengesForArea } from '../services/ChallengesService';
+import { getAreasNames } from '../i18n/helpers';
 
 export default function Desafios({ navigation }) {
   const { t } = useI18n();
+  const AREAS_NAMES = getAreasNames(t);
   const { user } = useAuth();
-  const [desafios, setDesafios] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [overallProgress, setOverallProgress] = useState(0);
 
   useEffect(() => {
     loadDesafios();
@@ -34,23 +37,53 @@ export default function Desafios({ navigation }) {
       if (user?.id) {
         // Carregar preferências do usuário
         const preferences = await AuthStorage.getUserPreferences(user.id);
-        if (preferences?.areasInteresse) {
-          // Gerar desafios baseados nas áreas de interesse
-          const generatedChallenges = generateChallenges(preferences.areasInteresse, t);
+        if (preferences?.areasInteresse && preferences.areasInteresse.length > 0) {
+          // Pegar até 3 áreas (as primeiras)
+          const areasToShow = preferences.areasInteresse.slice(0, 3);
           
           // Carregar desafios concluídos
           const completed = await GameStorage.getCompletedChallenges(user.id);
-
-          // Marcar status dos desafios
-          const challengesWithStatus = generatedChallenges.map((challenge) => {
-            const isCompleted = completed.includes(challenge.id);
-            return {
-              ...challenge,
-              status: isCompleted ? 'concluido' : 'disponivel',
-            };
-          });
-
-          setDesafios(challengesWithStatus);
+          
+          // Calcular progresso de cada área
+          const areasWithProgress = await Promise.all(
+            areasToShow.map(async (areaItem) => {
+              const area = typeof areaItem === 'object' ? areaItem.area : areaItem;
+              const nivel = typeof areaItem === 'object' ? areaItem.nivel : 'Iniciante';
+              
+              // Obter nível atual baseado no progresso
+              const currentLevel = await getCurrentLevelForArea(user.id, area);
+              
+              // Gerar desafios para calcular progresso
+              const challenges = generateChallengesForArea(area, currentLevel, t);
+              
+              // Contar desafios completados desta área
+              const areaChallenges = challenges.filter(c => c.area === area);
+              const completedCount = areaChallenges.filter(c => completed.includes(c.id)).length;
+              const progress = areaChallenges.length > 0 
+                ? Math.round((completedCount / areaChallenges.length) * 100) 
+                : 0;
+              
+              return {
+                area: area,
+                nivel: nivel,
+                currentLevel: currentLevel,
+                progress: progress,
+                completedCount: completedCount,
+                totalCount: areaChallenges.length,
+                name: AREAS_NAMES[area] || area,
+                icon: area === 'ia' ? '🤖' : area === 'dados' ? '📊' : area === 'programacao' ? '💻' : '📚',
+              };
+            })
+          );
+          
+          setAreas(areasWithProgress);
+          
+          // Calcular progresso geral (média das 3 áreas)
+          const totalProgress = areasWithProgress.reduce((sum, a) => sum + a.progress, 0);
+          const avgProgress = areasWithProgress.length > 0 
+            ? Math.round(totalProgress / areasWithProgress.length) 
+            : 0;
+          setOverallProgress(avgProgress);
         }
       }
     } catch (error) {
@@ -58,34 +91,14 @@ export default function Desafios({ navigation }) {
     }
   };
 
-  const handleChallengePress = (desafio) => {
-    if (desafio.status === 'concluido') {
-      // Mostrar mensagem que já foi concluído
-      return;
-    }
-    navigation.navigate('DesafioJogo', { desafio });
+  const handleAreaPress = (areaData) => {
+    navigation.navigate('DesafiosPorArea', { area: areaData });
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'concluido':
-        return '#4CAF50';
-      case 'emAndamento':
-        return '#FFA500';
-      default:
-        return '#007AFF';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'concluido':
-        return t('concluido');
-      case 'emAndamento':
-        return t('emAndamento');
-      default:
-        return t('disponivel');
-    }
+  const getProgressColor = (progress) => {
+    if (progress >= 80) return '#4CAF50';
+    if (progress >= 50) return '#FFA500';
+    return '#007AFF';
   };
 
   return (
@@ -99,64 +112,73 @@ export default function Desafios({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {/* Progresso Geral */}
+          <BlurView intensity={80} tint="dark" style={styles.progressCard}>
+            <Text style={styles.progressTitle}>{t('seuProgresso')}</Text>
+            <Text style={styles.progressPercent}>{overallProgress}%</Text>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${overallProgress}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.progressSubtext}>
+              Progresso geral das suas áreas de estudo
+            </Text>
+          </BlurView>
+
+          {/* Cards de Áreas */}
           <BlurView intensity={80} tint="dark" style={styles.card}>
             <Text style={styles.title}>{t('desafios')}</Text>
-            <Text style={styles.description}>{t('desafiosDescricao')}</Text>
+            <Text style={styles.description}>
+              Escolha uma área para ver seus desafios e revisar o conteúdo! 📚
+            </Text>
 
-            {desafios.length > 0 ? (
-              <View style={styles.desafiosContainer}>
-                {desafios.map((desafio) => {
-                  const statusColor = getStatusColor(desafio.status);
+            {areas.length > 0 ? (
+              <View style={styles.areasContainer}>
+                {areas.map((areaData) => {
+                  const progressColor = getProgressColor(areaData.progress);
                   return (
                     <TouchableOpacity
-                      key={desafio.id}
-                      style={styles.desafioCard}
+                      key={areaData.area}
+                      style={styles.areaCard}
                       activeOpacity={0.7}
-                      onPress={() => handleChallengePress(desafio)}
-                      disabled={desafio.status === 'concluido'}
-                      accessible={true}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${desafio.titulo}, ${desafio.pontos} ${t('pontos')}, ${getStatusText(desafio.status)}`}
-                      accessibilityHint={desafio.status === 'concluido' ? t('desafioJaConcluido') : t('iniciarDesafio')}
-                      accessibilityState={{ disabled: desafio.status === 'concluido' }}
+                      onPress={() => handleAreaPress(areaData)}
                     >
-                      <View style={styles.desafioHeader}>
-                        <Text style={styles.desafioIcon}>{desafio.icone}</Text>
-                        <View style={styles.desafioInfo}>
-                          <Text style={styles.desafioTitulo}>{desafio.titulo}</Text>
-                          <Text style={styles.desafioDescricao}>{desafio.descricao}</Text>
-                        </View>
-                      </View>
-                      <View style={styles.desafioMeta}>
-                        <View style={styles.desafioBadge}>
-                          <Ionicons name="trophy" size={14} color="#FFD700" />
-                          <Text style={styles.desafioBadgeText}>{desafio.pontos} {t('pontos')}</Text>
-                        </View>
-                        <View style={styles.desafioBadge}>
-                          <Ionicons name="flag" size={14} color="#B0B0B0" />
-                          <Text style={styles.desafioBadgeText}>{desafio.dificuldade}</Text>
-                        </View>
-                        {desafio.prazo && (
-                          <View style={styles.desafioBadge}>
-                            <Ionicons name="time-outline" size={14} color="#B0B0B0" />
-                            <Text style={styles.desafioBadgeText}>{desafio.prazo}</Text>
-                          </View>
-                        )}
-                      </View>
-                      <View style={styles.desafioFooter}>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            { backgroundColor: `${statusColor}20`, borderColor: statusColor },
-                          ]}
-                        >
-                          <View
-                            style={[styles.statusDot, { backgroundColor: statusColor }]}
-                          />
-                          <Text style={[styles.statusText, { color: statusColor }]}>
-                            {getStatusText(desafio.status)}
+                      <View style={styles.areaHeader}>
+                        <Text style={styles.areaIcon}>{areaData.icon}</Text>
+                        <View style={styles.areaInfo}>
+                          <Text style={styles.areaName}>{areaData.name}</Text>
+                          <Text style={styles.areaLevel}>
+                            {t('nivel')}: {areaData.currentLevel}
                           </Text>
                         </View>
+                      </View>
+                      
+                      {/* Progresso da área */}
+                      <View style={styles.areaProgressContainer}>
+                        <View style={styles.areaProgressHeader}>
+                          <Text style={styles.areaProgressLabel}>{t('progresso')}</Text>
+                          <Text style={[styles.areaProgressPercent, { color: progressColor }]}>
+                            {areaData.progress}%
+                          </Text>
+                        </View>
+                        <View style={styles.areaProgressBar}>
+                          <View
+                            style={[
+                              styles.areaProgressFill,
+                              { width: `${areaData.progress}%`, backgroundColor: progressColor },
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.areaProgressText}>
+                          {areaData.completedCount} de {areaData.totalCount} desafios completos
+                        </Text>
+                      </View>
+                      
+                      <View style={styles.areaFooter}>
                         <Ionicons name="chevron-forward" size={20} color="#B0B0B0" />
                       </View>
                     </TouchableOpacity>
@@ -166,7 +188,9 @@ export default function Desafios({ navigation }) {
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="trophy-outline" size={64} color="#B0B0B0" />
-                <Text style={styles.emptyStateText}>{t('nenhumDesafioDisponivel')}</Text>
+                <Text style={styles.emptyStateText}>
+                  Selecione áreas de interesse no onboarding para ver desafios
+                </Text>
               </View>
             )}
           </BlurView>
@@ -219,82 +243,111 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     lineHeight: 20,
   },
-  desafiosContainer: {
+  progressCard: {
+    borderRadius: 16,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  progressTitle: {
+    fontSize: 18,
+    color: '#E0EEFF',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  progressPercent: {
+    fontSize: 32,
+    color: '#007AFF',
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  progressBar: {
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 5,
+  },
+  progressSubtext: {
+    fontSize: 12,
+    color: '#B0B0B0',
+  },
+  areasContainer: {
     width: '100%',
   },
-  desafioCard: {
+  areaCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  desafioHeader: {
+  areaHeader: {
     flexDirection: 'row',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  desafioIcon: {
-    fontSize: 32,
-    marginRight: 12,
+  areaIcon: {
+    fontSize: 40,
+    marginRight: 16,
   },
-  desafioInfo: {
+  areaInfo: {
     flex: 1,
   },
-  desafioTitulo: {
-    fontSize: 16,
+  areaName: {
+    fontSize: 20,
     color: '#E0EEFF',
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 4,
   },
-  desafioDescricao: {
-    fontSize: 13,
+  areaLevel: {
+    fontSize: 14,
     color: '#B0B0B0',
-    lineHeight: 18,
   },
-  desafioMeta: {
+  areaProgressContainer: {
+    marginTop: 8,
+  },
+  areaProgressHeader: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  desafioBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  desafioBadgeText: {
-    fontSize: 11,
-    color: '#E0EEFF',
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  desafioFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  statusBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
+    marginBottom: 8,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: 12,
+  areaProgressLabel: {
+    fontSize: 14,
+    color: '#E0EEFF',
     fontWeight: '600',
+  },
+  areaProgressPercent: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  areaProgressBar: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  areaProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  areaProgressText: {
+    fontSize: 12,
+    color: '#B0B0B0',
+  },
+  areaFooter: {
+    alignItems: 'flex-end',
+    marginTop: 8,
   },
   emptyState: {
     padding: 40,

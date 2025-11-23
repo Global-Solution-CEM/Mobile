@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AuthStorage } from '../services/AuthStorage';
 import { GameStorage } from '../services/GameStorage';
 import { CoursesService } from '../services/CoursesService';
+import { getCurrentLevelForArea, generateChallengesForArea } from '../services/ChallengesService';
 import { useI18n } from '../i18n/I18nContext';
 
 export default function Home({ navigation }) {
@@ -20,11 +21,11 @@ export default function Home({ navigation }) {
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
-    cursosEmAndamento: 2,
-    cursosConcluidos: 1,
+    cursosEmAndamento: 0,
+    cursosConcluidos: 0,
     desafiosCompletos: 0,
     pontos: 0,
-    progressoGeral: 42,
+    progressoGeral: 0,
   });
   const [proximoCurso, setProximoCurso] = useState(null);
 
@@ -50,14 +51,64 @@ export default function Home({ navigation }) {
         const pontos = await GameStorage.getUserPoints(user.id);
         const completedChallenges = await GameStorage.getCompletedChallenges(user.id);
         
+        // Carregar cursos reais
+        const cursosEmAndamento = await GameStorage.getCoursesInProgress(user.id);
+        const cursosConcluidos = await GameStorage.getCompletedCourses(user.id);
+        
+        // Calcular progresso geral baseado nas 3 áreas de interesse
+        const preferences = await AuthStorage.getUserPreferences(user.id);
+        let progressoGeral = 0;
+        
+        if (preferences?.areasInteresse && preferences.areasInteresse.length > 0) {
+          // Pegar até 3 áreas
+          const areasToShow = preferences.areasInteresse.slice(0, 3);
+          
+          // Calcular progresso de cada área
+          const areasProgress = await Promise.all(
+            areasToShow.map(async (areaItem) => {
+              const area = typeof areaItem === 'object' ? areaItem.area : areaItem;
+              const currentLevel = await getCurrentLevelForArea(user.id, area);
+              const challenges = generateChallengesForArea(area, currentLevel, t);
+              
+              const areaChallenges = challenges.filter(c => c.area === area);
+              const completedCount = areaChallenges.filter(c => completedChallenges.includes(c.id)).length;
+              const progress = areaChallenges.length > 0 
+                ? Math.round((completedCount / areaChallenges.length) * 100) 
+                : 0;
+              
+              return progress;
+            })
+          );
+          
+          // Progresso geral é a média das 3 áreas
+          if (areasProgress.length > 0) {
+            const totalProgress = areasProgress.reduce((sum, p) => sum + p, 0);
+            progressoGeral = Math.round(totalProgress / areasProgress.length);
+          }
+        } else {
+          // Fallback: usar sistema antigo se não houver áreas
+          const averagePerformance = await GameStorage.getAveragePerformance(user.id);
+          const totalChallenges = completedChallenges.length;
+          const totalCourses = cursosEmAndamento.length + cursosConcluidos.length;
+          
+          if (totalChallenges > 0 || totalCourses > 0) {
+            const performanceWeight = averagePerformance * 0.6;
+            const coursesWeight = totalCourses > 0 ? ((cursosConcluidos.length / totalCourses) * 100) * 0.3 : 0;
+            const challengesWeight = totalChallenges > 0 ? Math.min((totalChallenges / 10) * 100, 100) * 0.1 : 0;
+            progressoGeral = Math.round(performanceWeight + coursesWeight + challengesWeight);
+          }
+        }
+        
         setStats(prev => ({
           ...prev,
           pontos: pontos,
           desafiosCompletos: completedChallenges.length,
+          cursosEmAndamento: cursosEmAndamento.length,
+          cursosConcluidos: cursosConcluidos.length,
+          progressoGeral: Math.min(progressoGeral, 100),
         }));
         
         // Carregar recomendações de cursos usando a API
-        const preferences = await AuthStorage.getUserPreferences(user.id);
         if (preferences?.areasInteresse) {
           setLoadingRecommendations(true);
           const result = await CoursesService.getSuggestedCourses(

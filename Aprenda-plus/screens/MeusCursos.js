@@ -7,40 +7,91 @@ import BackgroundImage from '../components/BackgroundImage';
 import CircularMenu from '../components/CircularMenu';
 import HeaderBack from '../components/HeaderBack';
 import { useI18n } from '../i18n/I18nContext';
+import { useAuth } from '../contexts/AuthContext';
+import { GameStorage } from '../services/GameStorage';
+import { CoursesService } from '../services/CoursesService';
 
 export default function MeusCursos({ navigation }) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const [cursosEmAndamento, setCursosEmAndamento] = useState([]);
   const [cursosConcluidos, setCursosConcluidos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simular carregamento de cursos
     loadMeusCursos();
   }, []);
 
-  const loadMeusCursos = () => {
-    // Dados simulados - em produção viria de uma API
-    setCursosEmAndamento([
-      {
-        id: '1',
-        titulo: 'Introdução à Inteligência Artificial',
-        progresso: 45,
-        icone: '🤖',
-      },
-      {
-        id: '2',
-        titulo: 'Análise de Dados com Python',
-        progresso: 30,
-        icone: '📊',
-      },
-    ]);
-    setCursosConcluidos([
-      {
-        id: '3',
-        titulo: 'Fundamentos de Programação',
-        icone: '💻',
-      },
-    ]);
+  // Recarregar quando voltar para a tela
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadMeusCursos();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadMeusCursos = async () => {
+    try {
+      setLoading(true);
+      
+      if (user?.id) {
+        // Carregar cursos reais do storage
+        const cursosEmAndamentoData = await GameStorage.getCoursesInProgress(user.id);
+        const cursosConcluidosData = await GameStorage.getCompletedCourses(user.id);
+        
+        // Buscar informações completas dos cursos sugeridos para preencher dados
+        const allCoursesResult = await CoursesService.getAllCourses();
+        const allCourses = allCoursesResult.success ? (allCoursesResult.data || []) : [];
+        
+        // Mapear cursos com informações completas
+        const mapCourseInfo = (courseId, progress, completed) => {
+          const courseInfo = allCourses.find(c => c.id === courseId || c.id?.toString() === courseId?.toString());
+          if (courseInfo) {
+            return {
+              id: courseId,
+              titulo: courseInfo.titulo || courseInfo.title || 'Curso',
+              progresso: progress,
+              icone: courseInfo.icone || courseInfo.icon || '📚',
+              descricao: courseInfo.descricao || courseInfo.description,
+              area: courseInfo.area,
+              nivel: courseInfo.nivel || courseInfo.level,
+            };
+          }
+          // Fallback se não encontrar na lista
+          return {
+            id: courseId,
+            titulo: `Curso ${courseId}`,
+            progresso: progress,
+            icone: '📚',
+          };
+        };
+        
+        const emAndamento = cursosEmAndamentoData.map(c => {
+          const courseInfo = mapCourseInfo(c.id, c.progress, false);
+          return courseInfo;
+        });
+        
+        // Cursos concluídos vão para o final (ordenados por data de conclusão)
+        const concluidos = cursosConcluidosData
+          .sort((a, b) => {
+            // Mais recentes primeiro, mas serão exibidos no final
+            const dateA = new Date(a.completedAt || 0);
+            const dateB = new Date(b.completedAt || 0);
+            return dateB - dateA;
+          })
+          .map(c => {
+            const courseInfo = mapCourseInfo(c.id, 100, true);
+            return courseInfo;
+          });
+        
+        setCursosEmAndamento(emAndamento);
+        setCursosConcluidos(concluidos);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar cursos:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

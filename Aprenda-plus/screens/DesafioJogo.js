@@ -24,12 +24,16 @@ export default function DesafioJogo({ route, navigation }) {
   const scaleAnim = useState(new Animated.Value(1))[0];
 
   useEffect(() => {
+    // Obter variação do desafio (0-9) do ID
+    const variationMatch = desafio.id?.match(/v(\d+)/);
+    const variation = variationMatch ? parseInt(variationMatch[1], 10) : 0;
+    
     if (desafio.tipo === 'quiz') {
-      const quizQuestions = getQuizQuestions(desafio.area, desafio.nivel);
+      const quizQuestions = getQuizQuestions(desafio.area, desafio.nivel, variation);
       setQuestions(quizQuestions);
     } else {
       // Para outros tipos de desafio, usar quiz como padrão por enquanto
-      const quizQuestions = getQuizQuestions(desafio.area, desafio.nivel);
+      const quizQuestions = getQuizQuestions(desafio.area, desafio.nivel, variation);
       setQuestions(quizQuestions);
     }
   }, [desafio]);
@@ -89,6 +93,27 @@ export default function DesafioJogo({ route, navigation }) {
     if (user?.id && points > 0) {
       await GameStorage.addPoints(user.id, points);
       await GameStorage.completeChallenge(user.id, desafio.id);
+
+      // Salvar desempenho para cálculo de progresso
+      await GameStorage.saveGamePerformance(user.id, {
+        challengeId: desafio.id,
+        area: desafio.area,
+        nivel: desafio.nivel,
+        score: finalScore,
+        totalQuestions: questions.length,
+        percentage: percentage,
+        pointsEarned: points,
+      });
+
+      // Atualizar progressão de desafios e verificar se subiu de nível
+      await GameStorage.updateChallengeProgression(user.id, desafio.area, 1);
+      
+      // Verificar se deve subir de nível (a cada 4 desafios completos)
+      const progression = await GameStorage.getChallengeProgression(user.id);
+      const areaProgress = progression[desafio.area] || 0;
+      
+      // Progressão: 0-3 = Iniciante, 4-7 = Intermediário, 8+ = Avançado
+      // O nível é calculado automaticamente na próxima vez que carregar os desafios
 
       // Verificar se ganhou troféu
       if (percentage === 100) {
