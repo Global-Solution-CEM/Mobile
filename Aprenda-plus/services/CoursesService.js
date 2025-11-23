@@ -3,14 +3,107 @@
 
 import { getCursosSugeridos, getCursosPorArea, CURSOS } from './CursosService';
 import { read, create, request } from './api/apiClient';
+import apiClient from './api/apiClient';
 import { API_ENDPOINTS } from './api/endpoints';
 import { handleApiError, handleApiSuccess } from './api/errorHandler';
 import { AuthStorage } from './AuthStorage';
+import API_CONFIG from './api/config';
 
 // Flag para alternar entre dados mockados e API
 // Ativado para recomendações (API IOT), desativado para outros endpoints
 const USE_API_RECOMMENDATIONS = true;
 const USE_API = false;
+
+// Cache para verificação de disponibilidade da API (evita múltiplas verificações)
+let apiAvailabilityCache = {
+  isAvailable: null,
+  lastCheck: null,
+  cacheDuration: 60000, // Cache por 1 minuto
+};
+
+/**
+ * Verifica se a API está disponível fazendo um health check rápido
+ * @returns {Promise<boolean>}
+ */
+const checkApiAvailability = async () => {
+  // Verificar cache primeiro
+  const now = Date.now();
+  if (
+    apiAvailabilityCache.isAvailable !== null &&
+    apiAvailabilityCache.lastCheck &&
+    (now - apiAvailabilityCache.lastCheck) < apiAvailabilityCache.cacheDuration
+  ) {
+    return apiAvailabilityCache.isAvailable;
+  }
+
+  try {
+    // Tentar fazer uma requisição simples para verificar se a API está rodando
+    // Usar um endpoint simples ou fazer uma requisição HEAD para a base URL
+    // Se conseguir conectar (mesmo que retorne 404), significa que o servidor está rodando
+    
+    // Criar uma requisição com timeout curto (2 segundos)
+    const healthCheckPromise = apiClient.get('/health', {
+      timeout: 2000,
+      validateStatus: (status) => {
+        // Qualquer status significa que o servidor está respondendo
+        return status >= 200 && status < 600;
+      },
+    }).then(() => {
+      return { success: true };
+    }).catch((error) => {
+      // Se for erro de rede, servidor não está disponível
+      if (error.code === 'ECONNREFUSED' || 
+          error.code === 'ETIMEDOUT' || 
+          error.code === 'ENOTFOUND' ||
+          error.message?.includes('Network Error') ||
+          error.type === 'NETWORK_ERROR') {
+        return { success: false, error: { type: 'NETWORK_ERROR' } };
+      }
+      // Outros erros podem significar que o servidor está rodando mas o endpoint não existe
+      // Nesse caso, consideramos como disponível
+      return { success: true };
+    });
+    
+    // Timeout de 2 segundos para não demorar muito
+    const timeoutPromise = new Promise((resolve) => {
+      setTimeout(() => resolve({ success: false, error: { type: 'TIMEOUT' } }), 2000);
+    });
+    
+    const result = await Promise.race([healthCheckPromise, timeoutPromise]);
+
+    // Se conseguiu conectar (mesmo que seja erro 404), servidor está rodando
+    // Se for erro de rede ou timeout, servidor não está disponível
+    const isAvailable = result.success === true || 
+                       (result.error && result.error.type !== 'NETWORK_ERROR' && result.error.type !== 'TIMEOUT');
+    
+    // Atualizar cache
+    apiAvailabilityCache = {
+      isAvailable,
+      lastCheck: now,
+      cacheDuration: apiAvailabilityCache.cacheDuration,
+    };
+    
+    if (!isAvailable) {
+      console.log('🔍 API não disponível, usando modo mock');
+    } else {
+      console.log('✅ API disponível, usando recomendações da API');
+    }
+    
+    return isAvailable;
+  } catch (error) {
+    // Se der erro, considerar API como indisponível
+    const isAvailable = false;
+    const now = Date.now();
+    apiAvailabilityCache = {
+      isAvailable,
+      lastCheck: now,
+      cacheDuration: apiAvailabilityCache.cacheDuration,
+    };
+    
+    console.log('🔍 API não disponível, usando modo mock:', error.message || 'Erro de conexão');
+    return isAvailable;
+  }
+};
 
 /**
  * Normaliza o nível de conhecimento para o formato esperado pela API
@@ -147,6 +240,21 @@ export const CoursesService = {
    */
   async getSuggestedCourses(userId, areasInteresse, userInfo = {}) {
     if (USE_API_RECOMMENDATIONS) {
+      // Verificar se a API está disponível antes de tentar fazer a requisição
+      const isApiAvailable = await checkApiAvailability();
+      
+      if (!isApiAvailable) {
+        // API não está disponível, usar dados mockados diretamente
+        console.log('📦 Modo MOCK: API não disponível, usando dados locais');
+        const courses = getCursosSugeridos(areasInteresse);
+        return {
+          success: true,
+          data: courses,
+          fallback: true,
+          message: 'Usando dados locais (servidor não disponível)',
+        };
+      }
+      
       try {
         // Obter informações do usuário
         const user = await AuthStorage.getUser();
