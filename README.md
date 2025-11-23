@@ -13,7 +13,7 @@ O **Aprenda+** é uma plataforma mobile de aprendizado desenvolvida como soluç�
 ## 🎥 Vídeo de Apresentação
 
 
-**Link do vídeo:** [Adicione o link do YouTube aqui](https://www.youtube.com/watch?v=VIDEO_ID)
+**Link do vídeo:** https://youtu.be/TvwoeenuxnU
 
 ## 🎯 Descrição da Solução Global Solution
 
